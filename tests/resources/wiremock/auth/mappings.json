@@ -1,0 +1,23 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "urlPathPattern": "/v1/admin/whois/.*"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "id": "5aa4491c-4cf8-40aa-be86-d6d8f2b9381d",
+          "client_id": "TGVrJBCCvn",
+          "created_at": "2023-04-14T11:45:10.898606",
+          "last_time_used": "2023-04-14T11:45:57.978078",
+          "organization_id": "3f46658a-19c3-4410-96e5-e21c581a0567"
+        }
+      }
+    }
+  ]
+}

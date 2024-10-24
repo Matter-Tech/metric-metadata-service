@@ -1,0 +1,14 @@
+{
+  "cookiecutter": {
+    "project_name": "Metric Metadata Service",
+    "project_slug": "metric-metadata-service",
+    "author_name": "Matter Developers X Georgi Dimitrov",
+    "author_email": "dev@thisismatter.com",
+    "database_name": "metric_metadata_service",
+    "database_username": "metric_metadata_service_db_user"
+  },
+  "_metadata": {
+    "origin_template": "template-api",
+    "last_replay": "2024-10-24T13:03:13.081927+0000"
+  }
+}

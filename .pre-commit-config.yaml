@@ -1,0 +1,15 @@
+repos:
+-   repo: local
+    hooks:
+    -   id: ruff linter
+        name: ruff linter
+        language: system
+        entry: bash -c "./scripts/run_with_local_poetry_venv.sh ruff check --fix"
+        types:
+            - python
+    -   id: ruff formatter
+        name: ruff formatter
+        language: system
+        entry: bash -c "./scripts/run_with_local_poetry_venv.sh ruff format"
+        types:
+            - python

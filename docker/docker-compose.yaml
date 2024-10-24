@@ -1,0 +1,152 @@
+networks:
+  network:
+    name: network
+
+services:
+
+  base-builder:
+    # Base Docker Image
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.base
+    image: metric-metadata-service-base-image:latest
+
+  postgres:
+    # Database
+    image: postgres
+    ports:
+      - 5432:5432
+    env_file:
+      - ../env/compose.env
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready --username metric_metadata_service_db_user --dbname metric_metadata_service"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - network
+
+  redis:
+    # Cache
+    image: redis
+    ports:
+      - 6379:6379
+    env_file:
+      - ../env/compose.env
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+      interval: 1s
+      timeout: 2s
+      retries: 5
+    networks:
+      - network
+
+  auth:
+    # Mock Aggregate API
+    image: wiremock/wiremock:3.5.2
+    environment:
+      - INSTANCE_NAME=auth-api
+    ports:
+      - 8082:8080
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/__admin/health"]
+      interval: 1s
+      timeout: 2s
+      retries: 5
+    volumes:
+      - ../tests/resources/wiremock/auth:/home/wiremock/mappings
+    networks:
+      - network
+
+  aws:
+    image: localstack/localstack:latest-amd64
+    ports:
+      - 4566:4566
+    env_file:
+      - ../env/compose.env
+    environment:
+      - SERVICES=sqs
+      - SQS_ENDPOINT_STRATEGY=path
+    healthcheck:
+      test: ["CMD-SHELL", "awslocal sqs list-queues"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - ../tests/resources/localstack:/docker-entrypoint-initaws.d
+    networks:
+      - network
+
+  # Application base
+  metric-metadata-service-base:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.development
+    image: metric-metadata-service-development:latest
+    env_file:
+      - ../env/compose.env
+    volumes:
+      - ../src/app:${PROJECT_BASE_PATH_IN_CONTAINER}/app
+      - ../src/alembic:${PROJECT_BASE_PATH_IN_CONTAINER}/alembic
+      - ../src/alembic.ini:${PROJECT_BASE_PATH_IN_CONTAINER}/alembic.ini
+      - ../src/cli.sh:${PROJECT_BASE_PATH_IN_CONTAINER}/cli.sh
+    networks:
+      - network
+
+  # Database Migrations
+  postgres-migration:
+    extends:
+      service: metric-metadata-service-base
+    environment:
+      - INSTANCE_NAME=migration
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: bash -c "./init_database.sh"
+
+  metric-metadata-service:
+    extends:
+      service: metric-metadata-service-base
+    ports:
+      - 8080:8080
+    environment:
+      - INSTANCE_NAME=metric-metadata-service
+    depends_on: &app-dependencies
+      postgres-migration:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      aws:
+        condition: service_healthy
+      auth:
+        condition: service_healthy
+      base-builder:
+        condition: service_started
+    command: poetry run python -m app.main
+
+  metric-metadata-service-celery-beat:
+    extends:
+      service: metric-metadata-service-base
+    environment:
+      - INSTANCE_NAME=metric-metadata-service-celery-beat
+    depends_on:
+      *app-dependencies
+    command: poetry run celery -A app.main.celery beat -s /tmp/celerybeat-schedule.db
+
+  metric-metadata-service-worker-high:
+    extends:
+      service: metric-metadata-service-base
+    environment:
+      - INSTANCE_NAME=metric-metadata-service-worker-high
+    depends_on:
+      *app-dependencies
+    command: poetry run celery -A app.main.celery worker -Q high_priority_queue --concurrency 2
+
+  metric-metadata-service-worker-low:
+    extends:
+      service: metric-metadata-service-base
+    environment:
+      - INSTANCE_NAME=metric-metadata-service-worker-low
+    depends_on:
+      *app-dependencies
+    command: poetry run celery -A app.main.celery worker -Q low_priority_queue --concurrency 2

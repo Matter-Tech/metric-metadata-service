@@ -1,0 +1,8 @@
+name: metric-metadata-service
+runtime:
+  name: python
+  options:
+    virtualenv: venv
+description: Matter Metric Metadata Service
+aws:
+  region: eu-central-1
