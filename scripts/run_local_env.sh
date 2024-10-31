@@ -11,10 +11,7 @@ docker compose -f "$COMPOSE_FILE" down
 docker compose -f "$COMPOSE_FILE" build base-builder
 
 docker compose -f "$COMPOSE_FILE" up --build \
-  postgres postgres-migration redis auth aws \
-  metric-metadata-service-worker-high \
-  metric-metadata-service-worker-low \
-  metric-metadata-service-celery-beat
+  postgres postgres-migration redis auth aws
 
 docker compose -f "$COMPOSE_FILE" down
 
