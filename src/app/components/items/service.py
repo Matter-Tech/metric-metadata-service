@@ -14,7 +14,6 @@ from app.common.exceptions.exceptions import (
 
 from .dal import ItemDAL
 from .models import HelloWorldItemRequestModel, HelloWorldItemResponseModel
-from .tasks import hello_world_item_task
 
 
 class ItemService:
@@ -53,7 +52,6 @@ class ItemService:
             ServerError: If the response model cannot be saved in the cache.
 
         """
-        await run_task_async(hello_world_item_task, hello_world_item_request_model.id)
 
         hello_world_item_response_model = HelloWorldItemResponseModel(
             id=hello_world_item_request_model.id,

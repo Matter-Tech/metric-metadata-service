@@ -3,7 +3,6 @@ from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator
 
 import sentry_sdk
-from celery.signals import worker_process_init, worker_process_shutdown
 from fastapi import FastAPI
 from fastapi.responses import PlainTextResponse
 from matter_exceptions.exceptions.fastapi import BaseFastAPIException
@@ -11,8 +10,6 @@ from matter_exceptions.exceptions.general import DetailedException
 from matter_observability.fastapi import add_middleware
 from matter_observability.fastapi.request_id import process_request_id
 from matter_observability.logging import LOGGING_CONFIG
-from matter_task_queue import create_celery
-from matter_task_queue.utils import async_to_sync
 from sentry_sdk.integrations.asyncio import AsyncioIntegration
 from starlette.middleware.cors import CORSMiddleware
 
@@ -22,11 +19,12 @@ from app.common.exceptions.api_exception_handlers import (
 )
 from app.components.health.router import health_router
 from app.components.items.router import item_router
+from app.components.properties.router import property_router
 from app.components.organizations.router import organization_router
 from app.dependencies import Dependencies
 from app.env import SETTINGS
 
-from .cron_jobs import CELERYBEAT_SCHEDULE
+
 
 
 def _sentry_tracing_sampler(sampling_context: dict[str, Any]) -> float:
@@ -61,32 +59,6 @@ async def _app_lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
     logging.info("Application is shutting down...")
 
 
-@worker_process_init.connect()
-def worker_process_init(**kwargs):
-    """
-    Celery worker process startup.
-    """
-    logging.info("Worker Process Initialization started...")
-    logging.info("Initiating dependencies...")
-    from app.dependencies import Dependencies
-
-    Dependencies.start()
-    logging.info("Done initiating dependencies.")
-    logging.info("Done Worker Process Initialization.")
-
-
-@worker_process_shutdown.connect()
-def worker_process_shutdown(**kwargs):
-    """
-    Celery worker process shutdown.
-    """
-    logging.info(f"Worker process [{kwargs['pid']}] shutdown... -> Exit Code: [{kwargs['exitcode']}]")
-    logging.info("Closing connections to DB & cache...")
-    from app.dependencies import Dependencies
-
-    async_to_sync(Dependencies.stop)
-    logging.info("Done closing connections to DB & cache.")
-    logging.info("Done worker process shutdown.")
 
 
 def create_app() -> FastAPI:
@@ -130,14 +102,8 @@ def create_app() -> FastAPI:
     app.include_router(health_router)
     app.include_router(organization_router)
     app.include_router(item_router)
+    app.include_router(property_router)
 
-    # Add Celery
-    app.celery_app = create_celery(
-        task_module_paths=[
-            "app.components.items.tasks",
-        ],
-        celery_beat_schedule=CELERYBEAT_SCHEDULE,
-    )
 
     @app.get("/", response_class=PlainTextResponse)
     async def get_root():

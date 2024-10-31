@@ -7,7 +7,6 @@ from app.env import SETTINGS
 
 # Create app
 app = create_app()
-celery = app.celery_app
 
 if __name__ == "__main__":
     # Start server

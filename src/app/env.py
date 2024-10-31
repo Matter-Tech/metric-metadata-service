@@ -48,11 +48,6 @@ class Settings(BaseSettings):
     default_tracing_sample_rate: float = 0.1
     enable_metrics: bool = True
 
-    # Celery
-    celery_log_level: Annotated[str, StringConstraints(to_upper=True)] = "INFO"
-    celery_log_file_path: str = "/tmp/celery.txt"
-    celery_broker_url: str | None = None
-    celery_result_backend_url: str | None = None
 
     @property
     def is_env_local_or_test(self) -> bool:
