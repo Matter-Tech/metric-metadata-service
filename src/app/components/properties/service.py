@@ -15,7 +15,6 @@ from app.components.properties.models.property_update import PropertyUpdateModel
 
 
 class PropertyService:
-
     def __init__(
         self,
         dal: PropertyDAL,

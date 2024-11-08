@@ -1,6 +1,5 @@
-from typing import Annotated, Literal
+from typing import Literal
 
-from pydantic import StringConstraints
 from pydantic_settings import BaseSettings
 
 
@@ -47,7 +46,6 @@ class Settings(BaseSettings):
     sentry_dsn: str
     default_tracing_sample_rate: float = 0.1
     enable_metrics: bool = True
-
 
     @property
     def is_env_local_or_test(self) -> bool:

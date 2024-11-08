@@ -12,9 +12,9 @@ from .dtos import (
     FullPropertyOutDTO,
     PropertyDeletionOutDTO,
     PropertyInDTO,
+    PropertyListOutDTO,
     PropertyOutDTO,
     PropertyUpdateInDTO,
-    PropertyListOutDTO,
 )
 from .models.property import PropertyModel
 from .models.property_update import PropertyUpdateModel

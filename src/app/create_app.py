@@ -19,12 +19,10 @@ from app.common.exceptions.api_exception_handlers import (
 )
 from app.components.health.router import health_router
 from app.components.items.router import item_router
-from app.components.properties.router import property_router
 from app.components.organizations.router import organization_router
+from app.components.properties.router import property_router
 from app.dependencies import Dependencies
 from app.env import SETTINGS
-
-
 
 
 def _sentry_tracing_sampler(sampling_context: dict[str, Any]) -> float:
@@ -57,8 +55,6 @@ async def _app_lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
     await Dependencies.stop()
     logging.info("Done closing connections to DB & cache.")
     logging.info("Application is shutting down...")
-
-
 
 
 def create_app() -> FastAPI:
@@ -103,7 +99,6 @@ def create_app() -> FastAPI:
     app.include_router(organization_router)
     app.include_router(item_router)
     app.include_router(property_router)
-
 
     @app.get("/", response_class=PlainTextResponse)
     async def get_root():

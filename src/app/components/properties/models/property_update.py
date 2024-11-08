@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from app.components.properties.models.property import EntityTypeEnum, DataTypeEnum
+from app.components.properties.models.property import DataTypeEnum, EntityTypeEnum
 
 
 class PropertyUpdateModel(BaseModel):

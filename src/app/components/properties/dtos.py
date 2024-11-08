@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from typing import List
 
 from matter_persistence.foundation_model import FoundationModel
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from app.components.properties.models.property import DataTypeEnum, EntityTypeEnum
 
