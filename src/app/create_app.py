@@ -18,6 +18,7 @@ from app.common.exceptions.api_exception_handlers import (
     general_exception_handler,
 )
 from app.components.health.router import health_router
+from app.components.metric_sets.router import metric_set_router
 from app.components.properties.router import property_router
 from app.dependencies import Dependencies
 from app.env import SETTINGS
@@ -95,6 +96,7 @@ def create_app() -> FastAPI:
     # Apply Routers
     app.include_router(health_router)
     app.include_router(property_router)
+    app.include_router(metric_set_router)
 
     @app.get("/", response_class=PlainTextResponse)
     async def get_root():

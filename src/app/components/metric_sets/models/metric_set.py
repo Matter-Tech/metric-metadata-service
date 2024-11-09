@@ -1,5 +1,3 @@
-import uuid
-
 from matter_persistence.sql.base import CustomBase
 from sqlalchemy import Column, Enum, String
 from sqlalchemy.dialects.postgresql import JSONB

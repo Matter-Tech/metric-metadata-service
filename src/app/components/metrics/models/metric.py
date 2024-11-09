@@ -22,7 +22,7 @@ class MetricModel(CustomBase):
 
     metric_set = relationship("MetricSetModel", back_populates="metrics")
     parent_section = relationship("MetricSetTreeModel", back_populates="metrics")
-    parent_metric = relationship("MetricModel", remote_side=[id])
+    parent_metric = relationship("MetricModel", primaryjoin="MetricModel.id == MetricModel.parent_metric_id", remote_side="MetricModel.id")
     data_metric = relationship("DataMetricModel", back_populates="metrics")
 
     __table_args__ = (

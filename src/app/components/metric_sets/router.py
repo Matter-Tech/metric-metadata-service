@@ -1,0 +1,140 @@
+import uuid
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Path, Query, status
+from fastapi.responses import JSONResponse
+from matter_persistence.sql.utils import SortMethodModel
+
+from app.components.metric_sets.dtos import MetricSetOutDTO, FullMetricSetOutDTO, MetricSetInDTO, MetricSetUpdateInDTO, \
+    MetricSetListOutDTO, MetricSetDeletionOutDTO
+from app.components.metric_sets.models.metric_set import MetricSetModel
+from app.components.metric_sets.models.metric_set_update import MetricSetUpdateModel
+from app.components.metric_sets.service import MetricSetService
+from app.dependencies import Dependencies
+from app.env import SETTINGS
+
+
+metric_set_router = APIRouter(tags=["MetricSets"], prefix=f"{SETTINGS.path_prefix}/v1/metric_sets")
+
+
+@metric_set_router.post(
+    "/",
+    status_code=status.HTTP_201_CREATED,
+    response_model=MetricSetOutDTO,
+    response_class=JSONResponse,
+)
+async def create_metric_set(
+    metric_set_in_dto: MetricSetInDTO,
+    metric_set_service: MetricSetService = Depends(Dependencies.metric_set_service),
+):
+    """
+    Creates a new metric_set with the provided information.
+    """
+    metric_set_model = MetricSetModel.parse_obj(metric_set_in_dto)
+    created_metric_set_model = await metric_set_service.create_metric_set(
+        metric_set_model=metric_set_model,
+    )
+    response_dto = MetricSetOutDTO.parse_obj(created_metric_set_model)
+
+    return response_dto
+
+
+@metric_set_router.get(
+    "/{target_metric_set_id}",
+    status_code=status.HTTP_200_OK,
+    response_model=FullMetricSetOutDTO,
+    response_class=JSONResponse,
+)
+async def get_metric_set(
+    target_metric_set_id: Annotated[uuid.UUID, Path(title="The ID of the metric_set to retrieve")],
+    metric_set_service: MetricSetService = Depends(Dependencies.metric_set_service),
+):
+    """
+    Fetches the details of a metric_set.
+    """
+    metric_set_model = await metric_set_service.get_metric_set(metric_set_id=target_metric_set_id)
+    response_dto = FullMetricSetOutDTO.parse_obj(metric_set_model)
+
+    return response_dto
+
+
+@metric_set_router.put(
+    "/{target_metric_set_id}",
+    status_code=status.HTTP_200_OK,
+    response_model=MetricSetOutDTO,
+    response_class=JSONResponse,
+)
+async def update_metric_set(
+    target_metric_set_id: Annotated[uuid.UUID, Path(title="The ID of the metric_set to update")],
+    metric_set_in_dto: MetricSetUpdateInDTO,
+    metric_set_service: MetricSetService = Depends(Dependencies.metric_set_service),
+):
+    """
+    Update the metric_set's details with the specified data.
+    """
+    metric_set_update_model = MetricSetUpdateModel.model_validate(metric_set_in_dto.model_dump(exclude_none=True))
+    updated_metric_set_model = await metric_set_service.update_metric_set(
+        metric_set_id=target_metric_set_id,
+        metric_set_update_model=metric_set_update_model,
+    )
+    response_dto = MetricSetOutDTO.parse_obj(updated_metric_set_model)
+
+    return response_dto
+
+
+@metric_set_router.delete(
+    "/{target_metric_set_id}",
+    status_code=status.HTTP_200_OK,
+    response_model=MetricSetDeletionOutDTO,
+    response_class=JSONResponse,
+)
+async def delete_metric_set(
+    target_metric_set_id: Annotated[uuid.UUID, Path(title="The ID of the metric_set to delete")],
+    metric_set_service: MetricSetService = Depends(Dependencies.metric_set_service),
+):
+    """
+    Deletes a metric_set with the given target_metric_set_id.
+    """
+    deleted_metric_set_model = await metric_set_service.delete_metric_set(metric_set_id=target_metric_set_id)
+    response_dto = MetricSetDeletionOutDTO.parse_obj(deleted_metric_set_model)
+
+    return response_dto
+
+
+@metric_set_router.get(
+    "/",
+    status_code=status.HTTP_200_OK,
+    response_model=MetricSetListOutDTO,
+    response_class=JSONResponse,
+)
+async def find_metric_sets(
+    skip: int = Query(0, ge=0, description="Number of items to skip"),
+    limit: int = Query(
+        SETTINGS.pagination_limit_default,
+        ge=0,
+        le=SETTINGS.pagination_limit_max,
+        description="Number of items to retrieve",
+    ),
+    sort_field: str = Query(None, title="Sort field", description="Field to sort by"),
+    sort_method: SortMethodModel = Query(
+        SortMethodModel.ASC, title="Sort method", description="Sort method: asc or desc"
+    ),
+    with_deleted: bool | None = Query(False, description="Include deleted metric_sets"),
+    metric_set_service: MetricSetService = Depends(Dependencies.metric_set_service),
+):
+    """
+    Return a list of metric_sets, based on given parameters.
+    """
+    metric_sets = await metric_set_service.find_metric_sets(
+        skip=skip,
+        limit=limit,
+        sort_field=sort_field,
+        sort_method=sort_method,
+        with_deleted=with_deleted,
+    )
+    response_dto = MetricSetListOutDTO(
+        count=len(metric_sets),
+        metric_sets=FullMetricSetOutDTO.parse_obj(metric_sets),
+    )
+
+    return response_dto

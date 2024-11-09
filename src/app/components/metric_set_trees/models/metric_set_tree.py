@@ -19,5 +19,6 @@ class MetricSetTreeModel(CustomBase):
     node_special = Column(String(100))
     meta_data = Column(JSONB, nullable=True)
 
+    #Relationships
     metrics = relationship("MetricModel", back_populates="parent_section")
-    metric_set = relationship("MetricSetModel", back_populates="metric_set_trees")
+    metric_set = relationship("MetricSetModel", back_populates="metric_set_tree s")

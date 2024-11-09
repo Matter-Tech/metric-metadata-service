@@ -16,7 +16,7 @@ class PropertyInDTO(BaseModel):
     is_required: bool = Field(..., alias="isRequired")
 
     @field_validator("property_name")
-    def validate_organization_name(cls, property_name):
+    def validate_property_name(cls, property_name):
         if any(char.isdigit() for char in property_name):
             raise ValueError("Property Name must contain only alphabetic characters")
         if len(property_name) == 0:

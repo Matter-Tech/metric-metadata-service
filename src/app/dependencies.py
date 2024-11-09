@@ -4,9 +4,16 @@ from matter_persistence.sql.manager import DatabaseManager
 
 from app.components.health.dal import HealthDAL
 from app.components.health.service import HealthService
+from app.components.metric_sets.dal import MetricSetDAL
+from app.components.metric_sets.service import MetricSetService
 from app.components.properties.dal import PropertyDAL
 from app.components.properties.service import PropertyService
 from app.env import SETTINGS
+
+from app.components.metric_sets.models.metric_set import MetricSetModel
+from app.components.metrics.models.metric import MetricModel
+from app.components.metric_set_trees.models.metric_set_tree import MetricSetTreeModel
+from app.components.data_metrics.models.data_metric import DataMetricModel
 
 
 class Dependencies:
@@ -15,6 +22,9 @@ class Dependencies:
 
     _property_service: PropertyService
     _property_dal: PropertyDAL
+
+    _metric_set_service: MetricSetService
+    _metric_set_dal: MetricSetDAL
 
     _database_manager: DatabaseManager
     _cache_manager: CacheManager
@@ -32,6 +42,9 @@ class Dependencies:
         cls._property_dal = PropertyDAL(database_manager=cls.db_manager())
         cls._property_service = PropertyService(dal=cls._property_dal)
 
+        cls._metric_set_dal = MetricSetDAL(database_manager=cls.db_manager())
+        cls._metric_set_service = MetricSetService(dal=cls._metric_set_dal)
+
     @classmethod
     async def stop(cls):
         await cls._cache_manager.close_connection_pool()
@@ -45,6 +58,10 @@ class Dependencies:
     @classmethod
     def property_service(cls) -> PropertyService:
         return cls._property_service
+
+    @classmethod
+    def metric_set_service(cls) -> MetricSetService:
+        return cls._metric_set_service
 
     @classmethod
     def cache_manager(cls) -> CacheManager:
