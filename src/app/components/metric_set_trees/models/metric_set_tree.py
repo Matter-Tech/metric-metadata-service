@@ -13,12 +13,12 @@ class MetricSetTreeModel(CustomBase):
 
     node_type = Column(Enum(NodeTypeEnum), nullable=False)
     node_depth = Column(Integer, nullable=False)
-    node_name = Column(String(100))
-    node_description = Column(Text)
-    node_reference_id = Column(String(100))
-    node_special = Column(String(100))
+    node_name = Column(String(100), nullable=True)
+    node_description = Column(Text, nullable=True)
+    node_reference_id = Column(String(100), nullable=True)
+    node_special = Column(String(100), nullable=True)
     meta_data = Column(JSONB, nullable=True)
 
     #Relationships
     metrics = relationship("MetricModel", back_populates="parent_section")
-    metric_set = relationship("MetricSetModel", back_populates="metric_set_tree s")
+    metric_set = relationship("MetricSetModel", back_populates="metric_set_trees")

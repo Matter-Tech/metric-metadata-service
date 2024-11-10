@@ -2,18 +2,19 @@ from matter_persistence.redis.manager import CacheManager
 from matter_persistence.redis.utils import get_connection_pool
 from matter_persistence.sql.manager import DatabaseManager
 
+from app.components.data_metrics.dal import DataMetricDAL
+from app.components.data_metrics.service import DataMetricService
 from app.components.health.dal import HealthDAL
 from app.components.health.service import HealthService
+from app.components.metric_set_trees.service import MetricSetTreeService
+from app.components.metric_set_trees.dal import MetricSetTreeDAL
 from app.components.metric_sets.dal import MetricSetDAL
 from app.components.metric_sets.service import MetricSetService
+from app.components.metrics.dal import MetricDAL
+from app.components.metrics.service import MetricService
 from app.components.properties.dal import PropertyDAL
 from app.components.properties.service import PropertyService
 from app.env import SETTINGS
-
-from app.components.metric_sets.models.metric_set import MetricSetModel
-from app.components.metrics.models.metric import MetricModel
-from app.components.metric_set_trees.models.metric_set_tree import MetricSetTreeModel
-from app.components.data_metrics.models.data_metric import DataMetricModel
 
 
 class Dependencies:
@@ -25,6 +26,15 @@ class Dependencies:
 
     _metric_set_service: MetricSetService
     _metric_set_dal: MetricSetDAL
+
+    _metric_set_tree_service: MetricSetTreeService
+    _metric_set_tree_dal: MetricSetTreeDAL
+
+    _data_metric_service: DataMetricService
+    _data_metric_dal: DataMetricDAL
+
+    _metric_service: MetricService
+    _metric_dal: MetricDAL
 
     _database_manager: DatabaseManager
     _cache_manager: CacheManager
@@ -45,6 +55,15 @@ class Dependencies:
         cls._metric_set_dal = MetricSetDAL(database_manager=cls.db_manager())
         cls._metric_set_service = MetricSetService(dal=cls._metric_set_dal)
 
+        cls._metric_set_tree_dal = MetricSetTreeDAL(database_manager=cls.db_manager())
+        cls._metric_set_tree_service = MetricSetTreeService(dal=cls._metric_set_tree_dal)
+
+        cls._data_metric_dal = DataMetricDAL(database_manager=cls.db_manager())
+        cls._data_metric_service = DataMetricService(dal=cls._data_metric_dal)
+
+        cls._metric_dal = MetricDAL(database_manager=cls.db_manager())
+        cls._metric_service = MetricService(dal=cls._metric_dal)
+
     @classmethod
     async def stop(cls):
         await cls._cache_manager.close_connection_pool()
@@ -62,6 +81,18 @@ class Dependencies:
     @classmethod
     def metric_set_service(cls) -> MetricSetService:
         return cls._metric_set_service
+
+    @classmethod
+    def metric_set_tree_service(cls) -> MetricSetTreeService:
+        return cls._metric_set_tree_service
+
+    @classmethod
+    def data_metric_service(cls) -> DataMetricService:
+        return cls._data_metric_service
+
+    @classmethod
+    def metric_service(cls) -> MetricService:
+        return cls._metric_service
 
     @classmethod
     def cache_manager(cls) -> CacheManager:

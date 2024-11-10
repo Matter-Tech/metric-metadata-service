@@ -13,7 +13,7 @@ class MetricModel(CustomBase):
     metric_set_id = Column(UUID(as_uuid=True), ForeignKey("metric_sets.id"), nullable=False,  index=True)
     parent_section_id = Column(UUID(as_uuid=True), ForeignKey("metric_set_trees.id"), nullable=True, index=True)
     parent_metric_id = Column(UUID(as_uuid=True), ForeignKey("metrics.id"), nullable=True, index=True)
-    data_metric_id = Column(UUID(as_uuid=True), ForeignKey("data_metrics.id"), index=True)
+    data_metric_id = Column(UUID(as_uuid=True), ForeignKey("data_metrics.id"), nullable=True, index=True)
 
     status = Column(Enum(StatusEnum), nullable=False)
     name = Column(String(100), nullable=False)
