@@ -14,6 +14,7 @@ from app.components.metrics.dal import MetricDAL
 from app.components.metrics.service import MetricService
 from app.components.properties.dal import PropertyDAL
 from app.components.properties.service import PropertyService
+from app.components.utils.validation_service import ValidationService
 from app.env import SETTINGS
 
 
@@ -52,17 +53,19 @@ class Dependencies:
         cls._property_dal = PropertyDAL(database_manager=cls.db_manager())
         cls._property_service = PropertyService(dal=cls._property_dal)
 
+        cls._validation_service = ValidationService(property_service=cls._property_service)
+
         cls._metric_set_dal = MetricSetDAL(database_manager=cls.db_manager())
-        cls._metric_set_service = MetricSetService(dal=cls._metric_set_dal)
+        cls._metric_set_service = MetricSetService(dal=cls._metric_set_dal, validation_service=cls._validation_service)
 
         cls._metric_set_tree_dal = MetricSetTreeDAL(database_manager=cls.db_manager())
-        cls._metric_set_tree_service = MetricSetTreeService(dal=cls._metric_set_tree_dal)
+        cls._metric_set_tree_service = MetricSetTreeService(dal=cls._metric_set_tree_dal, validation_service=cls._validation_service)
 
         cls._data_metric_dal = DataMetricDAL(database_manager=cls.db_manager())
-        cls._data_metric_service = DataMetricService(dal=cls._data_metric_dal)
+        cls._data_metric_service = DataMetricService(dal=cls._data_metric_dal, validation_service=cls._validation_service)
 
         cls._metric_dal = MetricDAL(database_manager=cls.db_manager())
-        cls._metric_service = MetricService(dal=cls._metric_dal)
+        cls._metric_service = MetricService(dal=cls._metric_dal, validation_service=cls._validation_service)
 
     @classmethod
     async def stop(cls):

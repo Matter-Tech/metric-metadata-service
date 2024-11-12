@@ -9,17 +9,21 @@ from matter_observability.metrics import (
 from matter_persistence.sql.exceptions import DatabaseError
 from matter_persistence.sql.utils import SortMethodModel
 
+from app.common.enums.enums import EntityTypeEnum
 from app.components.metrics.dal import MetricDAL
 from app.components.metrics.models.metric import MetricModel
 from app.components.metrics.models.metric_update import MetricUpdateModel
+from app.components.utils.validation_service import ValidationService
 
 
 class MetricService:
     def __init__(
         self,
         dal: MetricDAL,
+        validation_service: ValidationService
     ):
         self._dal = dal
+        self._validation_service = validation_service
 
     @count_occurrence(label="metrics.get_metric")
     @measure_processing_time(label="metrics.get_metric")
@@ -54,6 +58,8 @@ class MetricService:
         metric_model: MetricModel,
     ) -> MetricModel:
         try:
+            await self._validation_service.validate_metadata(entity_type=EntityTypeEnum.METRIC, meta_data=metric_model.meta_data)
+
             created_metric_model = await self._dal.create_metric(metric_model)
         except DatabaseError as ex:
             raise ServerError(description=ex.description, detail=ex.detail)
@@ -67,6 +73,9 @@ class MetricService:
         metric_id: uuid.UUID,
         metric_update_model: MetricUpdateModel,
     ) -> MetricModel:
+        await self._validation_service.validate_metadata(entity_type=EntityTypeEnum.METRIC,
+                                                         meta_data=metric_update_model.meta_data)
+
         return await self._dal.update_metric(metric_id, metric_update_model)
 
     @count_occurrence(label="metrics.delete_metric")

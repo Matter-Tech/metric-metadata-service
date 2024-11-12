@@ -38,6 +38,7 @@ class PropertyService:
         sort_field: str | None = None,
         sort_method: SortMethodModel | None = None,
         with_deleted: bool = False,
+        filters: dict | None = None,
     ) -> List[PropertyModel]:
         return await self._dal.find_properties(
             skip=skip,
@@ -45,6 +46,7 @@ class PropertyService:
             sort_field=sort_field,
             sort_method=sort_method,
             with_deleted=with_deleted,
+            filters=filters
         )
 
     @count_occurrence(label="properties.create_property")

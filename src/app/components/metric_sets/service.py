@@ -1,7 +1,7 @@
 import uuid
 from typing import List
 
-from matter_exceptions.exceptions.fastapi import ServerError
+from matter_exceptions.exceptions.fastapi import ServerError, ValidationError
 from matter_observability.metrics import (
     count_occurrence,
     measure_processing_time,
@@ -9,17 +9,22 @@ from matter_observability.metrics import (
 from matter_persistence.sql.exceptions import DatabaseError
 from matter_persistence.sql.utils import SortMethodModel
 
+from app.common.enums.enums import EntityTypeEnum
 from app.components.metric_sets.dal import MetricSetDAL
 from app.components.metric_sets.models.metric_set import MetricSetModel
 from app.components.metric_sets.models.metric_set_update import MetricSetUpdateModel
+
+from app.components.utils.validation_service import ValidationService
 
 
 class MetricSetService:
     def __init__(
         self,
         dal: MetricSetDAL,
+        validation_service: ValidationService
     ):
         self._dal = dal
+        self._validation_service = validation_service
 
     @count_occurrence(label="metric_sets.get_metric_set")
     @measure_processing_time(label="metric_sets.get_metric_set")
@@ -54,6 +59,8 @@ class MetricSetService:
         metric_set_model: MetricSetModel,
     ) -> MetricSetModel:
         try:
+            await self._validation_service.validate_metadata(entity_type=EntityTypeEnum.METRIC_SET, meta_data=metric_set_model.meta_data)
+
             created_metric_set_model = await self._dal.create_metric_set(metric_set_model)
         except DatabaseError as ex:
             raise ServerError(description=ex.description, detail=ex.detail)
@@ -67,6 +74,9 @@ class MetricSetService:
         metric_set_id: uuid.UUID,
         metric_set_update_model: MetricSetUpdateModel,
     ) -> MetricSetModel:
+        await self._validation_service.validate_metadata(entity_type=EntityTypeEnum.METRIC_SET,
+                                                         meta_data=metric_set_update_model.meta_data)
+
         return await self._dal.update_metric_set(metric_set_id, metric_set_update_model)
 
     @count_occurrence(label="metric_sets.delete_metric_set")

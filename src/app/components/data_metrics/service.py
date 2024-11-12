@@ -9,17 +9,21 @@ from matter_observability.metrics import (
 from matter_persistence.sql.exceptions import DatabaseError
 from matter_persistence.sql.utils import SortMethodModel
 
+from app.common.enums.enums import EntityTypeEnum
 from app.components.data_metrics.dal import DataMetricDAL
 from app.components.data_metrics.models.data_metric import DataMetricModel
 from app.components.data_metrics.models.data_metric_update import DataMetricUpdateModel
+from app.components.utils.validation_service import ValidationService
 
 
 class DataMetricService:
     def __init__(
         self,
         dal: DataMetricDAL,
+        validation_service: ValidationService
     ):
         self._dal = dal
+        self._validation_service = validation_service
 
     @count_occurrence(label="data_metrics.get_data_metric")
     @measure_processing_time(label="data_metrics.get_data_metric")
@@ -54,6 +58,8 @@ class DataMetricService:
         data_metric_model: DataMetricModel,
     ) -> DataMetricModel:
         try:
+            await self._validation_service.validate_metadata(entity_type=EntityTypeEnum.DATA_METRIC, meta_data=data_metric_model.meta_data)
+
             created_data_metric_model = await self._dal.create_data_metric(data_metric_model)
         except DatabaseError as ex:
             raise ServerError(description=ex.description, detail=ex.detail)
@@ -67,6 +73,9 @@ class DataMetricService:
         data_metric_id: uuid.UUID,
         data_metric_update_model: DataMetricUpdateModel,
     ) -> DataMetricModel:
+        await self._validation_service.validate_metadata(entity_type=EntityTypeEnum.DATA_METRIC,
+                                                         meta_data=data_metric_update_model.meta_data)
+
         return await self._dal.update_data_metric(data_metric_id, data_metric_update_model)
 
     @count_occurrence(label="data_metrics.delete_data_metric")
