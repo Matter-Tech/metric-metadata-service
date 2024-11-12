@@ -1,7 +1,7 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Path, Query, status
+from fastapi import APIRouter, Depends, Path, Query, Body, status
 from fastapi.responses import JSONResponse
 from matter_persistence.sql.utils import SortMethodModel
 
@@ -101,13 +101,13 @@ async def delete_data_metric(
     return response_dto
 
 
-@data_metric_router.get(
-    "/",
+@data_metric_router.post(
+    "/search",
     status_code=status.HTTP_200_OK,
     response_model=DataMetricListOutDTO,
     response_class=JSONResponse,
 )
-async def find_data_metrics(
+async def filter_data_metrics(
     skip: int = Query(0, ge=0, description="Number of items to skip"),
     limit: int = Query(
         SETTINGS.pagination_limit_default,
@@ -120,6 +120,7 @@ async def find_data_metrics(
         SortMethodModel.ASC, title="Sort method", description="Sort method: asc or desc"
     ),
     with_deleted: bool | None = Query(False, description="Include deleted data_metrics"),
+    filters: DataMetricUpdateInDTO | None = Body(None, description="Field to filter"),
     data_metric_service: DataMetricService = Depends(Dependencies.data_metric_service),
 ):
     """
@@ -131,6 +132,7 @@ async def find_data_metrics(
         sort_field=sort_field,
         sort_method=sort_method,
         with_deleted=with_deleted,
+        filters=filters.model_dump(exclude_none=True),
     )
     response_dto = DataMetricListOutDTO(
         count=len(data_metrics),
@@ -138,3 +140,4 @@ async def find_data_metrics(
     )
 
     return response_dto
+

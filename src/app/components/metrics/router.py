@@ -1,7 +1,7 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Path, Query, status
+from fastapi import APIRouter, Depends, Path, Query, status, Body
 from fastapi.responses import JSONResponse
 from matter_persistence.sql.utils import SortMethodModel
 
@@ -101,8 +101,8 @@ async def delete_metric(
     return response_dto
 
 
-@metric_router.get(
-    "/",
+@metric_router.post(
+    "/search",
     status_code=status.HTTP_200_OK,
     response_model=MetricListOutDTO,
     response_class=JSONResponse,
@@ -119,6 +119,7 @@ async def find_metrics(
     sort_method: SortMethodModel = Query(
         SortMethodModel.ASC, title="Sort method", description="Sort method: asc or desc"
     ),
+    filters: MetricUpdateInDTO | None = Body(None, description="Field to filter"),
     with_deleted: bool | None = Query(False, description="Include deleted metrics"),
     metric_service: MetricService = Depends(Dependencies.metric_service),
 ):
@@ -131,6 +132,7 @@ async def find_metrics(
         sort_field=sort_field,
         sort_method=sort_method,
         with_deleted=with_deleted,
+        filters=filters.model_dump(exclude_none=True),
     )
     response_dto = MetricListOutDTO(
         count=len(metrics),

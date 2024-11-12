@@ -1,7 +1,7 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Path, Query, status
+from fastapi import APIRouter, Depends, Path, Query, status, Body
 from fastapi.responses import JSONResponse
 from matter_persistence.sql.utils import SortMethodModel
 
@@ -101,8 +101,8 @@ async def delete_metric_set_tree(
     return response_dto
 
 
-@metric_set_tree_router.get(
-    "/",
+@metric_set_tree_router.post(
+    "/search",
     status_code=status.HTTP_200_OK,
     response_model=MetricSetTreeListOutDTO,
     response_class=JSONResponse,
@@ -119,6 +119,7 @@ async def find_metric_set_trees(
     sort_method: SortMethodModel = Query(
         SortMethodModel.ASC, title="Sort method", description="Sort method: asc or desc"
     ),
+    filters: MetricSetTreeUpdateInDTO | None = Body(None, description="Field to filter"),
     with_deleted: bool | None = Query(False, description="Include deleted metric_set_trees"),
     metric_set_tree_service: MetricSetTreeService = Depends(Dependencies.metric_set_tree_service),
 ):
@@ -131,6 +132,7 @@ async def find_metric_set_trees(
         sort_field=sort_field,
         sort_method=sort_method,
         with_deleted=with_deleted,
+        filters=filters.model_dump(exclude_none=True),
     )
     response_dto = MetricSetTreeListOutDTO(
         count=len(metric_set_trees),

@@ -42,6 +42,7 @@ class DataMetricService:
         sort_field: str | None = None,
         sort_method: SortMethodModel | None = None,
         with_deleted: bool = False,
+        filters: dict | None = None,
     ) -> List[DataMetricModel]:
         return await self._dal.find_data_metrics(
             skip=skip,
@@ -49,6 +50,7 @@ class DataMetricService:
             sort_field=sort_field,
             sort_method=sort_method,
             with_deleted=with_deleted,
+            filters=filters,
         )
 
     @count_occurrence(label="data_metrics.create_data_metric")

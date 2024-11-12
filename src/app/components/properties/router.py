@@ -1,7 +1,7 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Path, Query, status
+from fastapi import APIRouter, Depends, Path, Query, status, Body
 from fastapi.responses import JSONResponse
 from matter_persistence.sql.utils import SortMethodModel
 
@@ -107,8 +107,8 @@ async def delete_property(
     return response_dto
 
 
-@property_router.get(
-    "/",
+@property_router.post(
+    "/search",
     status_code=status.HTTP_200_OK,
     response_model=PropertyListOutDTO,
     response_class=JSONResponse,
@@ -125,18 +125,21 @@ async def find_properties(
     sort_method: SortMethodModel = Query(
         SortMethodModel.ASC, title="Sort method", description="Sort method: asc or desc"
     ),
+    filters: PropertyUpdateInDTO | None = Body(None, description="Field to filter"),
     with_deleted: bool | None = Query(False, description="Include deleted properties"),
     property_service: PropertyService = Depends(Dependencies.property_service),
 ):
     """
     Return a list of properties, based on given parameters.
     """
+
     properties = await property_service.find_properties(
         skip=skip,
         limit=limit,
         sort_field=sort_field,
         sort_method=sort_method,
         with_deleted=with_deleted,
+        filters=filters.model_dump(exclude_none=True),
     )
     response_dto = PropertyListOutDTO(
         count=len(properties),

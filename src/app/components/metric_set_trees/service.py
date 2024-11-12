@@ -42,6 +42,7 @@ class MetricSetTreeService:
         sort_field: str | None = None,
         sort_method: SortMethodModel | None = None,
         with_deleted: bool = False,
+        filters: dict | None = None,
     ) -> List[MetricSetTreeModel]:
         return await self._dal.find_metric_set_trees(
             skip=skip,
@@ -49,6 +50,7 @@ class MetricSetTreeService:
             sort_field=sort_field,
             sort_method=sort_method,
             with_deleted=with_deleted,
+            filters=filters,
         )
 
     @count_occurrence(label="metric_set_trees.create_metric_set_tree")

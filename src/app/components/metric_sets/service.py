@@ -43,6 +43,7 @@ class MetricSetService:
         sort_field: str | None = None,
         sort_method: SortMethodModel | None = None,
         with_deleted: bool = False,
+        filters: dict | None = None,
     ) -> List[MetricSetModel]:
         return await self._dal.find_metric_sets(
             skip=skip,
@@ -50,6 +51,7 @@ class MetricSetService:
             sort_field=sort_field,
             sort_method=sort_method,
             with_deleted=with_deleted,
+            filters=filters,
         )
 
     @count_occurrence(label="metric_sets.create_metric_set")
