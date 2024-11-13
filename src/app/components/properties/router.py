@@ -1,7 +1,7 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Path, Query, status, Body
+from fastapi import APIRouter, Body, Depends, Path, Query, status
 from fastapi.responses import JSONResponse
 from matter_persistence.sql.utils import SortMethodModel
 
@@ -132,14 +132,15 @@ async def find_properties(
     """
     Return a list of properties, based on given parameters.
     """
-
+    if filters:
+        filters = filters.model_dump(exclude_none=True)
     properties = await property_service.find_properties(
         skip=skip,
         limit=limit,
         sort_field=sort_field,
         sort_method=sort_method,
         with_deleted=with_deleted,
-        filters=filters.model_dump(exclude_none=True),
+        filters=filters,
     )
     response_dto = PropertyListOutDTO(
         count=len(properties),

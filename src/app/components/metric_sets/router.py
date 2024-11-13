@@ -1,18 +1,23 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Path, Query, status, Body
+from fastapi import APIRouter, Body, Depends, Path, Query, status
 from fastapi.responses import JSONResponse
 from matter_persistence.sql.utils import SortMethodModel
 
-from app.components.metric_sets.dtos import MetricSetOutDTO, FullMetricSetOutDTO, MetricSetInDTO, MetricSetUpdateInDTO, \
-    MetricSetListOutDTO, MetricSetDeletionOutDTO
+from app.components.metric_sets.dtos import (
+    FullMetricSetOutDTO,
+    MetricSetDeletionOutDTO,
+    MetricSetInDTO,
+    MetricSetListOutDTO,
+    MetricSetOutDTO,
+    MetricSetUpdateInDTO,
+)
 from app.components.metric_sets.models.metric_set import MetricSetModel
 from app.components.metric_sets.models.metric_set_update import MetricSetUpdateModel
 from app.components.metric_sets.service import MetricSetService
 from app.dependencies import Dependencies
 from app.env import SETTINGS
-
 
 metric_set_router = APIRouter(tags=["MetricSets"], prefix=f"{SETTINGS.path_prefix}/v1/metric_sets")
 
@@ -126,13 +131,15 @@ async def find_metric_sets(
     """
     Return a list of metric_sets, based on given parameters.
     """
+    if filters:
+        filters = filters.model_dump(exclude_none=True)
     metric_sets = await metric_set_service.find_metric_sets(
         skip=skip,
         limit=limit,
         sort_field=sort_field,
         sort_method=sort_method,
         with_deleted=with_deleted,
-        filters=filters.model_dump(exclude_none=True),
+        filters=filters,
     )
     response_dto = MetricSetListOutDTO(
         count=len(metric_sets),

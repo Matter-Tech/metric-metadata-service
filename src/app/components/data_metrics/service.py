@@ -17,11 +17,7 @@ from app.components.utils.validation_service import ValidationService
 
 
 class DataMetricService:
-    def __init__(
-        self,
-        dal: DataMetricDAL,
-        validation_service: ValidationService
-    ):
+    def __init__(self, dal: DataMetricDAL, validation_service: ValidationService):
         self._dal = dal
         self._validation_service = validation_service
 
@@ -60,7 +56,9 @@ class DataMetricService:
         data_metric_model: DataMetricModel,
     ) -> DataMetricModel:
         try:
-            await self._validation_service.validate_metadata(entity_type=EntityTypeEnum.DATA_METRIC, meta_data=data_metric_model.meta_data)
+            await self._validation_service.validate_metadata(
+                entity_type=EntityTypeEnum.DATA_METRIC, meta_data=data_metric_model.meta_data
+            )
 
             created_data_metric_model = await self._dal.create_data_metric(data_metric_model)
         except DatabaseError as ex:
@@ -75,8 +73,9 @@ class DataMetricService:
         data_metric_id: uuid.UUID,
         data_metric_update_model: DataMetricUpdateModel,
     ) -> DataMetricModel:
-        await self._validation_service.validate_metadata(entity_type=EntityTypeEnum.DATA_METRIC,
-                                                         meta_data=data_metric_update_model.meta_data)
+        await self._validation_service.validate_metadata(
+            entity_type=EntityTypeEnum.DATA_METRIC, meta_data=data_metric_update_model.meta_data
+        )
 
         return await self._dal.update_data_metric(data_metric_id, data_metric_update_model)
 

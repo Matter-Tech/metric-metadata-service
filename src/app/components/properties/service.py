@@ -46,7 +46,7 @@ class PropertyService:
             sort_field=sort_field,
             sort_method=sort_method,
             with_deleted=with_deleted,
-            filters=filters
+            filters=filters,
         )
 
     @count_occurrence(label="properties.create_property")

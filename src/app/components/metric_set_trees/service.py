@@ -10,18 +10,14 @@ from matter_persistence.sql.exceptions import DatabaseError
 from matter_persistence.sql.utils import SortMethodModel
 
 from app.common.enums.enums import EntityTypeEnum
+from app.components.metric_set_trees.dal import MetricSetTreeDAL
 from app.components.metric_set_trees.models.metric_set_tree import MetricSetTreeModel
 from app.components.metric_set_trees.models.metric_set_trees_update import MetricSetTreeUpdateModel
-from app.components.metric_set_trees.dal import MetricSetTreeDAL
 from app.components.utils.validation_service import ValidationService
 
 
 class MetricSetTreeService:
-    def __init__(
-        self,
-        dal: MetricSetTreeDAL,
-        validation_service: ValidationService
-    ):
+    def __init__(self, dal: MetricSetTreeDAL, validation_service: ValidationService):
         self._dal = dal
         self._validation_service = validation_service
 
@@ -60,7 +56,9 @@ class MetricSetTreeService:
         metric_set_tree_model: MetricSetTreeModel,
     ) -> MetricSetTreeModel:
         try:
-            await self._validation_service.validate_metadata(entity_type=EntityTypeEnum.METRIC_SET_TREE, meta_data=metric_set_tree_model.meta_data)
+            await self._validation_service.validate_metadata(
+                entity_type=EntityTypeEnum.METRIC_SET_TREE, meta_data=metric_set_tree_model.meta_data
+            )
 
             created_metric_set_tree_model = await self._dal.create_metric_set_tree(metric_set_tree_model)
         except DatabaseError as ex:
@@ -75,8 +73,9 @@ class MetricSetTreeService:
         metric_set_tree_id: uuid.UUID,
         metric_set_tree_update_model: MetricSetTreeUpdateModel,
     ) -> MetricSetTreeModel:
-        await self._validation_service.validate_metadata(entity_type=EntityTypeEnum.METRIC_SET_TREE,
-                                                         meta_data=metric_set_tree_update_model.meta_data)
+        await self._validation_service.validate_metadata(
+            entity_type=EntityTypeEnum.METRIC_SET_TREE, meta_data=metric_set_tree_update_model.meta_data
+        )
 
         return await self._dal.update_metric_set_tree(metric_set_tree_id, metric_set_tree_update_model)
 

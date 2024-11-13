@@ -6,8 +6,8 @@ from app.components.data_metrics.dal import DataMetricDAL
 from app.components.data_metrics.service import DataMetricService
 from app.components.health.dal import HealthDAL
 from app.components.health.service import HealthService
-from app.components.metric_set_trees.service import MetricSetTreeService
 from app.components.metric_set_trees.dal import MetricSetTreeDAL
+from app.components.metric_set_trees.service import MetricSetTreeService
 from app.components.metric_sets.dal import MetricSetDAL
 from app.components.metric_sets.service import MetricSetService
 from app.components.metrics.dal import MetricDAL
@@ -59,10 +59,14 @@ class Dependencies:
         cls._metric_set_service = MetricSetService(dal=cls._metric_set_dal, validation_service=cls._validation_service)
 
         cls._metric_set_tree_dal = MetricSetTreeDAL(database_manager=cls.db_manager())
-        cls._metric_set_tree_service = MetricSetTreeService(dal=cls._metric_set_tree_dal, validation_service=cls._validation_service)
+        cls._metric_set_tree_service = MetricSetTreeService(
+            dal=cls._metric_set_tree_dal, validation_service=cls._validation_service
+        )
 
         cls._data_metric_dal = DataMetricDAL(database_manager=cls.db_manager())
-        cls._data_metric_service = DataMetricService(dal=cls._data_metric_dal, validation_service=cls._validation_service)
+        cls._data_metric_service = DataMetricService(
+            dal=cls._data_metric_dal, validation_service=cls._validation_service
+        )
 
         cls._metric_dal = MetricDAL(database_manager=cls.db_manager())
         cls._metric_service = MetricService(dal=cls._metric_dal, validation_service=cls._validation_service)
@@ -75,7 +79,6 @@ class Dependencies:
     @classmethod
     def health_service(cls) -> HealthService:
         return cls._health_service
-
 
     @classmethod
     def property_service(cls) -> PropertyService:

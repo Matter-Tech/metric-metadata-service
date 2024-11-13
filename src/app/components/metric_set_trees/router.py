@@ -1,18 +1,23 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Path, Query, status, Body
+from fastapi import APIRouter, Body, Depends, Path, Query, status
 from fastapi.responses import JSONResponse
 from matter_persistence.sql.utils import SortMethodModel
 
-from app.components.metric_set_trees.dtos import MetricSetTreeOutDTO, MetricSetTreeInDTO, FullMetricSetTreeOutDTO, \
-    MetricSetTreeUpdateInDTO, MetricSetTreeDeletionOutDTO, MetricSetTreeListOutDTO
+from app.components.metric_set_trees.dtos import (
+    FullMetricSetTreeOutDTO,
+    MetricSetTreeDeletionOutDTO,
+    MetricSetTreeInDTO,
+    MetricSetTreeListOutDTO,
+    MetricSetTreeOutDTO,
+    MetricSetTreeUpdateInDTO,
+)
 from app.components.metric_set_trees.models.metric_set_tree import MetricSetTreeModel
 from app.components.metric_set_trees.models.metric_set_trees_update import MetricSetTreeUpdateModel
 from app.components.metric_set_trees.service import MetricSetTreeService
 from app.dependencies import Dependencies
 from app.env import SETTINGS
-
 
 metric_set_tree_router = APIRouter(tags=["MetricSetTrees"], prefix=f"{SETTINGS.path_prefix}/v1/metric_set_trees")
 
@@ -52,7 +57,9 @@ async def get_metric_set_tree(
     """
     Fetches the details of a metric_set_tree.
     """
-    metric_set_tree_model = await metric_set_tree_service.get_metric_set_tree(metric_set_tree_id=target_metric_set_tree_id)
+    metric_set_tree_model = await metric_set_tree_service.get_metric_set_tree(
+        metric_set_tree_id=target_metric_set_tree_id
+    )
     response_dto = FullMetricSetTreeOutDTO.parse_obj(metric_set_tree_model)
 
     return response_dto
@@ -72,7 +79,9 @@ async def update_metric_set_tree(
     """
     Update the metric_set_tree's details with the specified data.
     """
-    metric_set_tree_update_model = MetricSetTreeUpdateModel.model_validate(metric_set_tree_in_dto.model_dump(exclude_none=True))
+    metric_set_tree_update_model = MetricSetTreeUpdateModel.model_validate(
+        metric_set_tree_in_dto.model_dump(exclude_none=True)
+    )
     updated_metric_set_tree_model = await metric_set_tree_service.update_metric_set_tree(
         metric_set_tree_id=target_metric_set_tree_id,
         metric_set_tree_update_model=metric_set_tree_update_model,
@@ -95,7 +104,9 @@ async def delete_metric_set_tree(
     """
     Deletes a metric_set_tree with the given target_metric_set_tree_id.
     """
-    deleted_metric_set_tree_model = await metric_set_tree_service.delete_metric_set_tree(metric_set_tree_id=target_metric_set_tree_id)
+    deleted_metric_set_tree_model = await metric_set_tree_service.delete_metric_set_tree(
+        metric_set_tree_id=target_metric_set_tree_id
+    )
     response_dto = MetricSetTreeDeletionOutDTO.parse_obj(deleted_metric_set_tree_model)
 
     return response_dto
@@ -126,13 +137,15 @@ async def find_metric_set_trees(
     """
     Return a list of metric_set_trees, based on given parameters.
     """
+    if filters:
+        filters = filters.model_dump(exclude_none=True)
     metric_set_trees = await metric_set_tree_service.find_metric_set_trees(
         skip=skip,
         limit=limit,
         sort_field=sort_field,
         sort_method=sort_method,
         with_deleted=with_deleted,
-        filters=filters.model_dump(exclude_none=True),
+        filters=filters,
     )
     response_dto = MetricSetTreeListOutDTO(
         count=len(metric_set_trees),

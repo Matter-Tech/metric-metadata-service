@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from app.common.enums.enums import StatusEnum, PlacementEnum
+from app.common.enums.enums import PlacementEnum, StatusEnum
 
 
 class MetricSetUpdateModel(BaseModel):

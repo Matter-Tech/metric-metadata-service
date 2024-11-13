@@ -17,11 +17,7 @@ from app.components.utils.validation_service import ValidationService
 
 
 class MetricService:
-    def __init__(
-        self,
-        dal: MetricDAL,
-        validation_service: ValidationService
-    ):
+    def __init__(self, dal: MetricDAL, validation_service: ValidationService):
         self._dal = dal
         self._validation_service = validation_service
 
@@ -60,7 +56,9 @@ class MetricService:
         metric_model: MetricModel,
     ) -> MetricModel:
         try:
-            await self._validation_service.validate_metadata(entity_type=EntityTypeEnum.METRIC, meta_data=metric_model.meta_data)
+            await self._validation_service.validate_metadata(
+                entity_type=EntityTypeEnum.METRIC, meta_data=metric_model.meta_data
+            )
 
             created_metric_model = await self._dal.create_metric(metric_model)
         except DatabaseError as ex:
@@ -75,8 +73,9 @@ class MetricService:
         metric_id: uuid.UUID,
         metric_update_model: MetricUpdateModel,
     ) -> MetricModel:
-        await self._validation_service.validate_metadata(entity_type=EntityTypeEnum.METRIC,
-                                                         meta_data=metric_update_model.meta_data)
+        await self._validation_service.validate_metadata(
+            entity_type=EntityTypeEnum.METRIC, meta_data=metric_update_model.meta_data
+        )
 
         return await self._dal.update_metric(metric_id, metric_update_model)
 

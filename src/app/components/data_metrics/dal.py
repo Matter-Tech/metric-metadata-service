@@ -4,7 +4,7 @@ from uuid import UUID
 
 from matter_persistence.sql.exceptions import DatabaseRecordNotFoundError
 from matter_persistence.sql.manager import DatabaseManager
-from matter_persistence.sql.utils import get, SortMethodModel, find, commit
+from matter_persistence.sql.utils import SortMethodModel, commit, find, get
 from sqlalchemy import select
 
 from app.components.data_metrics.models.data_metric import DataMetricModel
@@ -19,8 +19,8 @@ class DataMetricDAL:
         self._database_manager = database_manager
 
     async def get_data_metric(
-            self,
-            data_metric_id: UUID,
+        self,
+        data_metric_id: UUID,
     ) -> DataMetricModel:
         statement = select(DataMetricModel).where(DataMetricModel.id == data_metric_id)
 
@@ -39,7 +39,6 @@ class DataMetricDAL:
                 )
 
             return data_metric_model
-
 
     async def find_data_metrics(
         self,

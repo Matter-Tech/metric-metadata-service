@@ -15,5 +15,3 @@ class MetricSetTreeUpdateModel(BaseModel):
     node_reference_id: str = None
     node_special: str = None
     meta_data: dict = None
-
-

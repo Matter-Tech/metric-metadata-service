@@ -1,18 +1,23 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Path, Query, status, Body
+from fastapi import APIRouter, Body, Depends, Path, Query, status
 from fastapi.responses import JSONResponse
 from matter_persistence.sql.utils import SortMethodModel
 
-from app.components.metrics.dtos import MetricOutDTO, FullMetricOutDTO, MetricInDTO, MetricUpdateInDTO, \
-    MetricListOutDTO, MetricDeletionOutDTO
+from app.components.metrics.dtos import (
+    FullMetricOutDTO,
+    MetricDeletionOutDTO,
+    MetricInDTO,
+    MetricListOutDTO,
+    MetricOutDTO,
+    MetricUpdateInDTO,
+)
 from app.components.metrics.models.metric import MetricModel
 from app.components.metrics.models.metric_update import MetricUpdateModel
 from app.components.metrics.service import MetricService
 from app.dependencies import Dependencies
 from app.env import SETTINGS
-
 
 metric_router = APIRouter(tags=["Metrics"], prefix=f"{SETTINGS.path_prefix}/v1/metrics")
 
@@ -126,13 +131,15 @@ async def find_metrics(
     """
     Return a list of metrics, based on given parameters.
     """
+    if filters:
+        filters = filters.model_dump(exclude_none=True)
     metrics = await metric_service.find_metrics(
         skip=skip,
         limit=limit,
         sort_field=sort_field,
         sort_method=sort_method,
         with_deleted=with_deleted,
-        filters=filters.model_dump(exclude_none=True),
+        filters=filters,
     )
     response_dto = MetricListOutDTO(
         count=len(metrics),

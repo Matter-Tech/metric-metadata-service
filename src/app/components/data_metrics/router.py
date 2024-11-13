@@ -1,18 +1,23 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Path, Query, Body, status
+from fastapi import APIRouter, Body, Depends, Path, Query, status
 from fastapi.responses import JSONResponse
 from matter_persistence.sql.utils import SortMethodModel
 
-from app.components.data_metrics.dtos import FullDataMetricOutDTO, DataMetricListOutDTO, DataMetricDeletionOutDTO, \
-    DataMetricOutDTO, DataMetricUpdateInDTO, DataMetricInDTO
+from app.components.data_metrics.dtos import (
+    DataMetricDeletionOutDTO,
+    DataMetricInDTO,
+    DataMetricListOutDTO,
+    DataMetricOutDTO,
+    DataMetricUpdateInDTO,
+    FullDataMetricOutDTO,
+)
 from app.components.data_metrics.models.data_metric import DataMetricModel
 from app.components.data_metrics.models.data_metric_update import DataMetricUpdateModel
 from app.components.data_metrics.service import DataMetricService
 from app.dependencies import Dependencies
 from app.env import SETTINGS
-
 
 data_metric_router = APIRouter(tags=["DataMetrics"], prefix=f"{SETTINGS.path_prefix}/v1/data_metrics")
 
@@ -126,13 +131,15 @@ async def filter_data_metrics(
     """
     Return a list of data_metrics, based on given parameters.
     """
+    if filters:
+        filters = filters.model_dump(exclude_none=True)
     data_metrics = await data_metric_service.find_data_metrics(
         skip=skip,
         limit=limit,
         sort_field=sort_field,
         sort_method=sort_method,
         with_deleted=with_deleted,
-        filters=filters.model_dump(exclude_none=True),
+        filters=filters,
     )
     response_dto = DataMetricListOutDTO(
         count=len(data_metrics),
@@ -140,4 +147,3 @@ async def filter_data_metrics(
     )
 
     return response_dto
-
