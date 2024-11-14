@@ -4,6 +4,8 @@ from matter_persistence.sql.manager import DatabaseManager
 
 from app.components.data_metrics.dal import DataMetricDAL
 from app.components.data_metrics.service import DataMetricService
+from app.components.events.dal import EventDAL
+from app.components.events.service import EventService
 from app.components.health.dal import HealthDAL
 from app.components.health.service import HealthService
 from app.components.metric_set_trees.dal import MetricSetTreeDAL
@@ -36,6 +38,9 @@ class Dependencies:
 
     _metric_service: MetricService
     _metric_dal: MetricDAL
+
+    _event_service: EventService
+    _event_dal: EventDAL
 
     _database_manager: DatabaseManager
     _cache_manager: CacheManager
@@ -71,6 +76,9 @@ class Dependencies:
         cls._metric_dal = MetricDAL(database_manager=cls.db_manager())
         cls._metric_service = MetricService(dal=cls._metric_dal, validation_service=cls._validation_service)
 
+        cls._event_dal = EventDAL(database_manager=cls.db_manager())
+        cls._event_service = EventService(dal=cls._event_dal)
+
     @classmethod
     async def stop(cls):
         await cls._cache_manager.close_connection_pool()
@@ -99,6 +107,10 @@ class Dependencies:
     @classmethod
     def metric_service(cls) -> MetricService:
         return cls._metric_service
+
+    @classmethod
+    def event_service(cls) -> EventService:
+        return cls._event_service
 
     @classmethod
     def cache_manager(cls) -> CacheManager:
