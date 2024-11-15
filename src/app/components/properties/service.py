@@ -9,7 +9,11 @@ from matter_observability.metrics import (
 from matter_persistence.sql.exceptions import DatabaseError
 from matter_persistence.sql.utils import SortMethodModel
 
+from app.common.enums.enums import EventTypeEnum, EntityTypeEnum
+from app.components.events.models.event import EventModel
+from app.components.events.service import EventService
 from app.components.properties.dal import PropertyDAL
+from app.components.properties.dtos import FullPropertyOutDTO
 from app.components.properties.models.property import PropertyModel
 from app.components.properties.models.property_update import PropertyUpdateModel
 
@@ -18,8 +22,10 @@ class PropertyService:
     def __init__(
         self,
         dal: PropertyDAL,
+        event_service: EventService,
     ):
         self._dal = dal
+        self._event_service = event_service
 
     @count_occurrence(label="properties.get_property")
     @measure_processing_time(label="properties.get_property")
@@ -57,6 +63,9 @@ class PropertyService:
     ) -> PropertyModel:
         try:
             created_property_model = await self._dal.create_property(property_model)
+            new_data = FullPropertyOutDTO.parse_obj(property_model)
+            event = EventModel(event_type=EventTypeEnum.CREATED, node_type=EntityTypeEnum.PROPERTY, node_id=created_property_model.id, new_data=new_data.model_dump_json())
+            await self._event_service.create_event(event)
         except DatabaseError as ex:
             raise ServerError(description=ex.description, detail=ex.detail)
 

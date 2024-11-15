@@ -55,8 +55,11 @@ class Dependencies:
         cls._health_dal = HealthDAL(cache_manager=cls.cache_manager(), database_manager=cls.db_manager())
         cls._health_service = HealthService(dal=cls._health_dal)
 
+        cls._event_dal = EventDAL(database_manager=cls.db_manager())
+        cls._event_service = EventService(dal=cls._event_dal)
+
         cls._property_dal = PropertyDAL(database_manager=cls.db_manager())
-        cls._property_service = PropertyService(dal=cls._property_dal)
+        cls._property_service = PropertyService(dal=cls._property_dal, event_service=cls._event_service)
 
         cls._validation_service = ValidationService(property_service=cls._property_service)
 
@@ -75,9 +78,6 @@ class Dependencies:
 
         cls._metric_dal = MetricDAL(database_manager=cls.db_manager())
         cls._metric_service = MetricService(dal=cls._metric_dal, validation_service=cls._validation_service)
-
-        cls._event_dal = EventDAL(database_manager=cls.db_manager())
-        cls._event_service = EventService(dal=cls._event_dal)
 
     @classmethod
     async def stop(cls):

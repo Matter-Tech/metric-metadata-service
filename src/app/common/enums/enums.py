@@ -13,6 +13,7 @@ class EntityTypeEnum(enum.Enum):
     METRIC_SET_TREE = "metric_set_tree"
     METRIC = "metric"
     DATA_METRIC = "data_metric"
+    PROPERTY = "property"
 
 
 class EventTypeEnum(enum.Enum):
