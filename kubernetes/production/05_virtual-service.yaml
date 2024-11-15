@@ -1,0 +1,36 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: metric-metadata-service
+  namespace: production
+spec:
+  hosts:
+  - api.thisismatter.com
+  gateways:
+  - production-gateway-nlb
+  http:
+    - match:
+      - uri:
+          prefix: /metric-metadata-service/
+      - uri:
+          prefix: /metric-metadata-service
+      rewrite:
+        uri: /
+      route:
+      - destination:
+          host: metric-metadata-service
+          port:
+            number: 8080
+      corsPolicy:
+        allowOrigins:
+          - exact: "*"
+        # The methods and headers we allow must be explicitly set here.
+        # Istio doesn't support wildcard methods and headers
+        allowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+        allowHeaders:
+          - content-type
+          - authorization

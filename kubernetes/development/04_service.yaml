@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: metric-metadata-service
+    service: metric-metadata-service
+  name: metric-metadata-service
+  namespace: development
+spec:
+  selector:
+    app: metric-metadata-service
+  ports:
+    - name: http
+      port: 8080

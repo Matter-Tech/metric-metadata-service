@@ -1,0 +1,44 @@
+apiVersion: security.istio.io/v1beta1
+kind: RequestAuthentication
+metadata:
+  name: metric-metadata-service-request-authentication
+  namespace: production
+spec:
+  selector:
+    matchLabels:
+      app: metric-metadata-service
+  jwtRules:
+    - issuer: https://thisismatter.eu.auth0.com/
+      jwksUri: https://thisismatter.eu.auth0.com/.well-known/jwks.json
+      outputPayloadToHeader: jwt
+
+---
+
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: metric-metadata-service-authorization-policy
+  namespace: istio-system
+spec:
+  selector:
+    matchLabels:
+      app: metric-metadata-service
+  action: ALLOW
+  rules:
+    - to:
+        - operation:
+            paths: [ "/health", "/analysis/jobs/*", "/organizations", "/metrics" ]
+            methods: [ "GET" ]
+      when:
+        - key: request.auth.claims[iss]
+          values: [ "https://thisismatter.eu.auth0.com/" ]
+
+    - to:
+        - operation:
+            paths: [ "/analysis/jobs" ]
+            methods: [ "POST" ]
+      when:
+        - key: request.auth.claims[iss]
+          values: [ "https://thisismatter.eu.auth0.com/" ]
+        - key: request.auth.claims[scope]
+          values: [ "metric-metadata-service" ]
