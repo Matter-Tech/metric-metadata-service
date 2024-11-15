@@ -4,12 +4,16 @@ from typing import Annotated
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, status
 from fastapi.responses import JSONResponse
 from matter_persistence.sql.utils import SortMethodModel
+from pydantic_core import from_json
 
 from app.dependencies import Dependencies
 from app.env import SETTINGS
 
 from ...auth import jwt_authorizer
 from ...auth.models import AuthorizedClient
+from ...common.enums.enums import EntityTypeEnum, EventTypeEnum
+from ..events.models.event import EventModel
+from ..events.service import EventService
 from .dtos import (
     FullPropertyOutDTO,
     PropertyDeletionOutDTO,
@@ -35,6 +39,7 @@ authorizer = jwt_authorizer
 async def create_property(
     property_in_dto: PropertyInDTO,
     property_service: PropertyService = Depends(Dependencies.property_service),
+    event_service: EventService = Depends(Dependencies.event_service),
     client: AuthorizedClient = Depends(authorizer),
 ):
     if not client.is_super_user():
@@ -47,6 +52,16 @@ async def create_property(
         property_model=property_model,
     )
     response_dto = PropertyOutDTO.parse_obj(created_property_model)
+
+    await event_service.create_event(
+        EventModel(
+            event_type=EventTypeEnum.CREATED,
+            node_type=EntityTypeEnum.PROPERTY,
+            node_id=created_property_model.id,
+            user_id=client.user_id,
+            new_data=from_json(property_in_dto.model_dump_json()),
+        )
+    )
 
     return response_dto
 
@@ -83,6 +98,7 @@ async def update_property(
     target_property_id: Annotated[uuid.UUID, Path(title="The ID of the property to update")],
     property_in_dto: PropertyUpdateInDTO,
     property_service: PropertyService = Depends(Dependencies.property_service),
+    event_service: EventService = Depends(Dependencies.event_service),
     client: AuthorizedClient = Depends(authorizer),
 ):
     if not client.is_super_user():
@@ -90,12 +106,22 @@ async def update_property(
     """
     Update the property's details with the specified data.
     """
-    property_update_model = PropertyUpdateModel.model_validate(property_in_dto)
+    property_update_model = PropertyUpdateModel.model_validate(property_in_dto.model_dump(exclude_none=True))
     updated_property_model = await property_service.update_property(
         property_id=target_property_id,
         property_update_model=property_update_model,
     )
     response_dto = PropertyOutDTO.parse_obj(updated_property_model)
+
+    await event_service.create_event(
+        EventModel(
+            event_type=EventTypeEnum.UPDATED,
+            node_type=EntityTypeEnum.PROPERTY,
+            node_id=updated_property_model.id,
+            user_id=client.user_id,
+            new_data=from_json(property_in_dto.model_dump_json(exclude_none=True)),
+        )
+    )
 
     return response_dto
 
@@ -109,6 +135,7 @@ async def update_property(
 async def delete_property(
     target_property_id: Annotated[uuid.UUID, Path(title="The ID of the property to delete")],
     property_service: PropertyService = Depends(Dependencies.property_service),
+    event_service: EventService = Depends(Dependencies.event_service),
     client: AuthorizedClient = Depends(authorizer),
 ):
     if not client.is_super_user():
@@ -118,6 +145,15 @@ async def delete_property(
     """
     deleted_property_model = await property_service.delete_property(property_id=target_property_id)
     response_dto = PropertyDeletionOutDTO.parse_obj(deleted_property_model)
+
+    await event_service.create_event(
+        EventModel(
+            event_type=EventTypeEnum.DELETED,
+            node_type=EntityTypeEnum.PROPERTY,
+            node_id=target_property_id,
+            user_id=client.user_id,
+        )
+    )
 
     return response_dto
 

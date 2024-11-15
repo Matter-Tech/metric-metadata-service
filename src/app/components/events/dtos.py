@@ -5,12 +5,12 @@ from typing import List
 from matter_persistence.foundation_model import FoundationModel
 from pydantic import BaseModel, Field
 
-from app.common.enums.enums import EventTypeEnum, NodeTypeEnum
+from app.common.enums.enums import EntityTypeEnum, EventTypeEnum
 
 
 class EventFilterInDTO(BaseModel):
     event_type: EventTypeEnum | None = Field(None, alias="eventType")
-    node_type: NodeTypeEnum | None = Field(None, alias="nodeType")
+    node_type: EntityTypeEnum | None = Field(None, alias="nodeType")
     node_id: uuid.UUID | None = Field(None, alias="nodeId")
     user_id: uuid.UUID | None = Field(None, alias="userId")
 
@@ -20,12 +20,12 @@ class EventOutDTO(FoundationModel):
 
 
 class FullEventOutDTO(EventOutDTO):
-    event_type: EventTypeEnum = Field(..., alias="eventType")
-    node_type: NodeTypeEnum = Field(..., alias="nodeType")
-    node_id: uuid.UUID = Field(..., alias="nodeId")
-    user_id: uuid.UUID = Field(..., alias="userId")
-    timestamp: bool = Field(..., alias="timestamp")
-    new_data: dict = Field(..., alias="newData")
+    event_type: EventTypeEnum | None = Field(None, alias="eventType")
+    node_type: EntityTypeEnum | None = Field(None, alias="nodeType")
+    node_id: uuid.UUID | None = Field(None, alias="nodeId")
+    user_id: uuid.UUID | None = Field(None, alias="userId")
+    created: datetime | None = Field(None, alias="timestamp")
+    new_data: dict | None = Field(None, alias="newData")
 
 
 class EventDeletionOutDTO(EventOutDTO):

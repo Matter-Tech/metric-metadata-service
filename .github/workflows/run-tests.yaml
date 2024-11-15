@@ -9,6 +9,10 @@ on:
       - README.md
       - renovate.json
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   setup:
     name: Setup the environment to run the tests

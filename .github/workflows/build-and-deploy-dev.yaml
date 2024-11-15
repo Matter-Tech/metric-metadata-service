@@ -10,6 +10,10 @@ on:
     paths-ignore:
       - kubernetes/production/**
 
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
   build-and-push-dev:
     name: Build and Deploy to Development

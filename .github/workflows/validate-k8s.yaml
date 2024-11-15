@@ -5,6 +5,10 @@ on:
     paths:
       - kubernetes/**
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate-k8s:
     name: Validate K8s manifests

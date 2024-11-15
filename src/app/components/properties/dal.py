@@ -83,7 +83,7 @@ class PropertyDAL:
                     "deleted",
                     "updated",
                 ]:  # updated & created are handled by sqlalchemy; deleted is handled by user
-                    if hasattr(property_model, k):
+                    if hasattr(property_model, k) and v is not None:
                         setattr(property_model, k, v)
 
             await commit(session)
