@@ -1,10 +1,12 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Body, Depends, Path, Query, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, status
 from fastapi.responses import JSONResponse
 from matter_persistence.sql.utils import SortMethodModel
 
+from app.auth import jwt_authorizer
+from app.auth.models import AuthorizedClient
 from app.components.events.dtos import (
     EventDeletionOutDTO,
     EventFilterInDTO,
@@ -16,6 +18,7 @@ from app.dependencies import Dependencies
 from app.env import SETTINGS
 
 event_router = APIRouter(tags=["Events"], prefix=f"{SETTINGS.path_prefix}/v1/events")
+authorizer = jwt_authorizer
 
 
 @event_router.get(
@@ -27,7 +30,10 @@ event_router = APIRouter(tags=["Events"], prefix=f"{SETTINGS.path_prefix}/v1/eve
 async def get_event(
     target_event_id: Annotated[uuid.UUID, Path(title="The ID of the event to retrieve")],
     event_service: EventService = Depends(Dependencies.event_service),
+    client: AuthorizedClient = Depends(authorizer),
 ):
+    if not client.is_super_user():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     """
     Fetches the details of a event.
     """
@@ -46,7 +52,10 @@ async def get_event(
 async def delete_event(
     target_event_id: Annotated[uuid.UUID, Path(title="The ID of the event to delete")],
     event_service: EventService = Depends(Dependencies.event_service),
+    client: AuthorizedClient = Depends(authorizer),
 ):
+    if not client.is_super_user():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     """
     Deletes a event with the given target_event_id.
     """
@@ -77,7 +86,10 @@ async def find_events(
     filters: EventFilterInDTO | None = Body(None, description="Field to filter"),
     with_deleted: bool | None = Query(False, description="Include deleted events"),
     event_service: EventService = Depends(Dependencies.event_service),
+    client: AuthorizedClient = Depends(authorizer),
 ):
+    if not client.is_super_user():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     """
     Return a list of events, based on given parameters.
     """

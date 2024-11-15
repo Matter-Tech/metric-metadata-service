@@ -1,10 +1,12 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Body, Depends, Path, Query, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, status
 from fastapi.responses import JSONResponse
 from matter_persistence.sql.utils import SortMethodModel
 
+from app.auth import jwt_authorizer
+from app.auth.models import AuthorizedClient
 from app.components.data_metrics.dtos import (
     DataMetricDeletionOutDTO,
     DataMetricInDTO,
@@ -20,6 +22,7 @@ from app.dependencies import Dependencies
 from app.env import SETTINGS
 
 data_metric_router = APIRouter(tags=["DataMetrics"], prefix=f"{SETTINGS.path_prefix}/v1/data_metrics")
+authorizer = jwt_authorizer
 
 
 @data_metric_router.post(
@@ -31,7 +34,10 @@ data_metric_router = APIRouter(tags=["DataMetrics"], prefix=f"{SETTINGS.path_pre
 async def create_data_metric(
     data_metric_in_dto: DataMetricInDTO,
     data_metric_service: DataMetricService = Depends(Dependencies.data_metric_service),
+    client: AuthorizedClient = Depends(authorizer),
 ):
+    if not client.is_super_user():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     """
     Creates a new data_metric with the provided information.
     """
@@ -53,7 +59,10 @@ async def create_data_metric(
 async def get_data_metric(
     target_data_metric_id: Annotated[uuid.UUID, Path(title="The ID of the data_metric to retrieve")],
     data_metric_service: DataMetricService = Depends(Dependencies.data_metric_service),
+    client: AuthorizedClient = Depends(authorizer),
 ):
+    if not client.is_super_user():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     """
     Fetches the details of a data_metric.
     """
@@ -73,7 +82,10 @@ async def update_data_metric(
     target_data_metric_id: Annotated[uuid.UUID, Path(title="The ID of the data_metric to update")],
     data_metric_in_dto: DataMetricUpdateInDTO,
     data_metric_service: DataMetricService = Depends(Dependencies.data_metric_service),
+    client: AuthorizedClient = Depends(authorizer),
 ):
+    if not client.is_super_user():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     """
     Update the data_metric's details with the specified data.
     """
@@ -96,7 +108,10 @@ async def update_data_metric(
 async def delete_data_metric(
     target_data_metric_id: Annotated[uuid.UUID, Path(title="The ID of the data_metric to delete")],
     data_metric_service: DataMetricService = Depends(Dependencies.data_metric_service),
+    client: AuthorizedClient = Depends(authorizer),
 ):
+    if not client.is_super_user():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     """
     Deletes a data_metric with the given target_data_metric_id.
     """
@@ -127,7 +142,10 @@ async def filter_data_metrics(
     with_deleted: bool | None = Query(False, description="Include deleted data_metrics"),
     filters: DataMetricUpdateInDTO | None = Body(None, description="Field to filter"),
     data_metric_service: DataMetricService = Depends(Dependencies.data_metric_service),
+    client: AuthorizedClient = Depends(authorizer),
 ):
+    if not client.is_super_user():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     """
     Return a list of data_metrics, based on given parameters.
     """

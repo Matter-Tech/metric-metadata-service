@@ -1,0 +1,73 @@
+name: Build and Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - kubernetes/development/**
+
+jobs:
+  build-and-deploy-prod:
+    name: Build and Deploy to Production
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+    - uses: actions/create-github-app-token@v1
+      id: app-token
+      with:
+        app-id: ${{ vars.COMMITTER_APP_ID }}
+        private-key: ${{ secrets.COMMITTER_APP_PRIVATE_KEY }}
+        owner: ${{ github.repository_owner }}
+        repositories: "metric-metadata-service,k8s-matter-services"
+
+    - name: Code checkout
+      uses: actions/checkout@v4
+      with:
+        token: ${{ steps.app-token.outputs.token }}
+
+    - name: Get image tag
+      id: get-image-tag
+      run:
+        echo "IMAGE_TAG=$(date -I)-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+    - name: Configuring AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-region: eu-central-1
+        role-to-assume: ${{ secrets.MILKYWAY_CICD_ROLE_ARN }}
+
+    - name: Logging in to AWS ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Building, tagging, and pushing image to AWS ECR
+      id: build-and-push
+      env:
+        IMAGE_TAG: ${{ steps.get-image-tag.outputs.IMAGE_TAG }}
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: core_services/metric-metadata-service
+      run: |
+        docker build -f docker/Dockerfile.base -t metric-metadata-service-base-image:latest .
+        docker build -f docker/Dockerfile.production -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+    - name: Configuring deployment file
+      env:
+        IMAGE_TAG: ${{ steps.get-image-tag.outputs.IMAGE_TAG }}
+      run: |
+        find kubernetes/production -type f -exec sed -i -E "s/[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9a-f]{7}.*$/$IMAGE_TAG/g" {} +
+
+    - name: Push the version to the current branch
+      env:
+        IMAGE_TAG: ${{ steps.get-image-tag.outputs.IMAGE_TAG }}
+      run: |
+        git add kubernetes/production
+        git config user.email ${{ vars.GIT_BOT_EMAIL }}
+        git config user.name ${{ vars.GIT_BOT_USERNAME }}
+        git diff-index --quiet HEAD || git commit --message "Set version in production to $IMAGE_TAG [no ci]"
+        git pull --no-rebase
+        git push

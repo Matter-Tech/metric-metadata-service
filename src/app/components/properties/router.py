@@ -1,13 +1,15 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Body, Depends, Path, Query, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, status
 from fastapi.responses import JSONResponse
 from matter_persistence.sql.utils import SortMethodModel
 
 from app.dependencies import Dependencies
 from app.env import SETTINGS
 
+from ...auth import jwt_authorizer
+from ...auth.models import AuthorizedClient
 from .dtos import (
     FullPropertyOutDTO,
     PropertyDeletionOutDTO,
@@ -21,6 +23,7 @@ from .models.property_update import PropertyUpdateModel
 from .service import PropertyService
 
 property_router = APIRouter(tags=["Properties"], prefix=f"{SETTINGS.path_prefix}/v1/properties")
+authorizer = jwt_authorizer
 
 
 @property_router.post(
@@ -32,7 +35,10 @@ property_router = APIRouter(tags=["Properties"], prefix=f"{SETTINGS.path_prefix}
 async def create_property(
     property_in_dto: PropertyInDTO,
     property_service: PropertyService = Depends(Dependencies.property_service),
+    client: AuthorizedClient = Depends(authorizer),
 ):
+    if not client.is_super_user():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     """
     Creates a new property with the provided information.
     """
@@ -54,7 +60,10 @@ async def create_property(
 async def get_property(
     target_property_id: Annotated[uuid.UUID, Path(title="The ID of the property to retrieve")],
     property_service: PropertyService = Depends(Dependencies.property_service),
+    client: AuthorizedClient = Depends(authorizer),
 ):
+    if not client.is_super_user():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     """
     Fetches the details of a property.
     """
@@ -74,11 +83,14 @@ async def update_property(
     target_property_id: Annotated[uuid.UUID, Path(title="The ID of the property to update")],
     property_in_dto: PropertyUpdateInDTO,
     property_service: PropertyService = Depends(Dependencies.property_service),
+    client: AuthorizedClient = Depends(authorizer),
 ):
+    if not client.is_super_user():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     """
     Update the property's details with the specified data.
     """
-    property_update_model = PropertyUpdateModel.parse_obj(property_in_dto)
+    property_update_model = PropertyUpdateModel.model_validate(property_in_dto)
     updated_property_model = await property_service.update_property(
         property_id=target_property_id,
         property_update_model=property_update_model,
@@ -97,7 +109,10 @@ async def update_property(
 async def delete_property(
     target_property_id: Annotated[uuid.UUID, Path(title="The ID of the property to delete")],
     property_service: PropertyService = Depends(Dependencies.property_service),
+    client: AuthorizedClient = Depends(authorizer),
 ):
+    if not client.is_super_user():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     """
     Deletes a property with the given target_property_id.
     """
@@ -128,7 +143,10 @@ async def find_properties(
     filters: PropertyUpdateInDTO | None = Body(None, description="Field to filter"),
     with_deleted: bool | None = Query(False, description="Include deleted properties"),
     property_service: PropertyService = Depends(Dependencies.property_service),
+    client: AuthorizedClient = Depends(authorizer),
 ):
+    if not client.is_super_user():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     """
     Return a list of properties, based on given parameters.
     """

@@ -1,5 +1,5 @@
 from matter_persistence.sql.base import CustomBase
-from sqlalchemy import UUID, Column, DateTime, Enum
+from sqlalchemy import UUID, Column, Enum
 from sqlalchemy.dialects.postgresql import JSONB
 
 from app.common.enums.enums import EntityTypeEnum, EventTypeEnum

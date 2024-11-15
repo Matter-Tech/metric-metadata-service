@@ -1,0 +1,121 @@
+name: Build and Deploy to Development
+
+on:
+  workflow_dispatch:
+  issue_comment:
+    types: [ created ]
+  pull_request:
+    types:
+      - closed
+    paths-ignore:
+      - kubernetes/production/**
+
+jobs:
+  build-and-push-dev:
+    name: Build and Deploy to Development
+    runs-on: ubuntu-latest
+
+    if: >
+      github.event.comment.body == 'deploy-to-dev' ||
+      github.event_name == 'workflow_dispatch' ||
+      github.event.pull_request.merged == true
+
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+
+    steps:
+    - uses: actions/create-github-app-token@v1
+      id: app-token
+      with:
+        app-id: ${{ vars.COMMITTER_APP_ID }}
+        private-key: ${{ secrets.COMMITTER_APP_PRIVATE_KEY }}
+        owner: ${{ github.repository_owner }}
+        repositories: "metric-metadata-service,k8s-matter-services"
+
+    - name: Code checkout
+      uses: actions/checkout@v4
+      with:
+        token: ${{ steps.app-token.outputs.token }}
+
+    - if: ${{ github.event.comment.body == 'deploy-to-dev' }}
+      name: Checkout PR
+      id: pr-checkout
+      env:
+        GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+      run: | 
+          gh pr checkout ${{ github.event.issue.number }}
+          echo "PR_BRANCH_NAME=$(git branch --show-current)" >> $GITHUB_OUTPUT
+
+    - name: Get image tag
+      id: get-image-tag
+      run:
+        echo "IMAGE_TAG=$(date -I)-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+    - name: Configuring AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-region: eu-central-1
+        role-to-assume: ${{ secrets.MILKYWAY_DEV_CICD_ROLE_ARN }}
+
+    - name: Logging in to AWS ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Building, tagging, and pushing image to AWS ECR
+      id: build-and-push
+      env:
+        IMAGE_TAG: ${{ steps.get-image-tag.outputs.IMAGE_TAG }}
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: core_services/metric-metadata-service
+      run: |
+        docker build -f docker/Dockerfile.base -t metric-metadata-service-base-image:latest .
+        docker build -f docker/Dockerfile.production -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+    - name: Configure Deployment Files
+      env:
+        IMAGE_TAG: ${{ steps.get-image-tag.outputs.IMAGE_TAG }}
+      run: |
+        find kubernetes/development -type f -exec sed -i -E "s/[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9a-f]{7}.*$/$IMAGE_TAG/g" {} +
+
+    - name: Push the version to the current branch
+      env:
+        IMAGE_TAG: ${{ steps.get-image-tag.outputs.IMAGE_TAG }}
+      run: |
+        git add kubernetes/development
+        git config user.email ${{ vars.GIT_BOT_EMAIL }}
+        git config user.name ${{ vars.GIT_BOT_USERNAME }}
+        git diff-index --quiet HEAD || git commit --message "Set version in development to $IMAGE_TAG [no ci]"
+        git pull --no-rebase
+        git push
+
+    - uses: actions/checkout@v4
+      with:
+        repository: Matter-Tech/k8s-matter-services
+        ref: main
+        token: ${{ steps.app-token.outputs.token }}
+
+    - name: Make ArgoCD track current branch
+      uses: mikefarah/yq@v4
+      with:
+        cmd: yq -i '.spec.source.targetRevision = "${{ steps.pr-checkout.outputs.PR_BRANCH_NAME || github.ref_name }}"' argocd-apps-definitions/development/metric-metadata-service.yaml
+
+    - name: Commit current branch to k8s-matter-services
+      run: |
+        git add argocd-apps-definitions/development/metric-metadata-service.yaml
+        git config user.email ${{ vars.GIT_BOT_EMAIL }}
+        git config user.name ${{ vars.GIT_BOT_USERNAME }}
+        git diff-index --quiet HEAD || git commit --message "Set metric-metadata-service tracking branch in development"
+        git push
+
+    - name: comment
+      if: github.event.comment.body == 'deploy-to-dev'
+      env:
+        IMAGE_TAG: ${{ steps.get-image-tag.outputs.IMAGE_TAG }}
+        URL_PATH: ${{ github.event.issue.pull_request.html_url }}
+        REPO: ${{ github.event.issue.pull_request.url }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      run: gh pr comment $URL_PATH --body "$IMAGE_TAG deployed to development" --repo $REPO

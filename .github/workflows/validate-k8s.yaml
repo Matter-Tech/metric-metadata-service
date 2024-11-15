@@ -1,0 +1,40 @@
+name: Validate K8s manifests
+
+on:
+  push:
+    paths:
+      - kubernetes/**
+
+jobs:
+  validate-k8s:
+    name: Validate K8s manifests
+
+    strategy:
+      matrix:
+        stage: [ development, production ]
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Code checkout
+        uses: actions/checkout@v4
+
+      - name: Configuring AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: eu-central-1
+          role-to-assume: ${{ secrets.MILKYWAY_DEV_CICD_ROLE_ARN }}
+
+      # Although we're doing a client-side dry-run, we still need to configure the kubeconfig properly for it to run.
+      # Configure it for the dev cluster.
+      - name: Updating kubeconfig
+        run: |
+          aws eks --region eu-central-1 update-kubeconfig --name ${{ secrets.DEV_CLUSTER_NAME }}
+
+      - name: Validating deployment files
+        run: |
+          kubectl apply -f kubernetes/${{ matrix.stage }} --dry-run=client --validate=true

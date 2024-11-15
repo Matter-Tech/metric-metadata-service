@@ -1,10 +1,12 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Body, Depends, Path, Query, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, status
 from fastapi.responses import JSONResponse
 from matter_persistence.sql.utils import SortMethodModel
 
+from app.auth import jwt_authorizer
+from app.auth.models import AuthorizedClient
 from app.components.metric_sets.dtos import (
     FullMetricSetOutDTO,
     MetricSetDeletionOutDTO,
@@ -20,6 +22,7 @@ from app.dependencies import Dependencies
 from app.env import SETTINGS
 
 metric_set_router = APIRouter(tags=["MetricSets"], prefix=f"{SETTINGS.path_prefix}/v1/metric_sets")
+authorizer = jwt_authorizer
 
 
 @metric_set_router.post(
@@ -31,7 +34,10 @@ metric_set_router = APIRouter(tags=["MetricSets"], prefix=f"{SETTINGS.path_prefi
 async def create_metric_set(
     metric_set_in_dto: MetricSetInDTO,
     metric_set_service: MetricSetService = Depends(Dependencies.metric_set_service),
+    client: AuthorizedClient = Depends(authorizer),
 ):
+    if not client.is_super_user():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     """
     Creates a new metric_set with the provided information.
     """
@@ -53,7 +59,10 @@ async def create_metric_set(
 async def get_metric_set(
     target_metric_set_id: Annotated[uuid.UUID, Path(title="The ID of the metric_set to retrieve")],
     metric_set_service: MetricSetService = Depends(Dependencies.metric_set_service),
+    client: AuthorizedClient = Depends(authorizer),
 ):
+    if not client.is_super_user():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     """
     Fetches the details of a metric_set.
     """
@@ -73,7 +82,10 @@ async def update_metric_set(
     target_metric_set_id: Annotated[uuid.UUID, Path(title="The ID of the metric_set to update")],
     metric_set_in_dto: MetricSetUpdateInDTO,
     metric_set_service: MetricSetService = Depends(Dependencies.metric_set_service),
+    client: AuthorizedClient = Depends(authorizer),
 ):
+    if not client.is_super_user():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     """
     Update the metric_set's details with the specified data.
     """
@@ -96,7 +108,10 @@ async def update_metric_set(
 async def delete_metric_set(
     target_metric_set_id: Annotated[uuid.UUID, Path(title="The ID of the metric_set to delete")],
     metric_set_service: MetricSetService = Depends(Dependencies.metric_set_service),
+    client: AuthorizedClient = Depends(authorizer),
 ):
+    if not client.is_super_user():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     """
     Deletes a metric_set with the given target_metric_set_id.
     """
@@ -127,7 +142,10 @@ async def find_metric_sets(
     filters: MetricSetUpdateInDTO | None = Body(None, description="Field to filter"),
     with_deleted: bool | None = Query(False, description="Include deleted metric_sets"),
     metric_set_service: MetricSetService = Depends(Dependencies.metric_set_service),
+    client: AuthorizedClient = Depends(authorizer),
 ):
+    if not client.is_super_user():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     """
     Return a list of metric_sets, based on given parameters.
     """

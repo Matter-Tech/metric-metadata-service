@@ -1,10 +1,12 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Body, Depends, Path, Query, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, status
 from fastapi.responses import JSONResponse
 from matter_persistence.sql.utils import SortMethodModel
 
+from app.auth import jwt_authorizer
+from app.auth.models import AuthorizedClient
 from app.components.metric_set_trees.dtos import (
     FullMetricSetTreeOutDTO,
     MetricSetTreeDeletionOutDTO,
@@ -20,6 +22,7 @@ from app.dependencies import Dependencies
 from app.env import SETTINGS
 
 metric_set_tree_router = APIRouter(tags=["MetricSetTrees"], prefix=f"{SETTINGS.path_prefix}/v1/metric_set_trees")
+authorizer = jwt_authorizer
 
 
 @metric_set_tree_router.post(
@@ -31,7 +34,10 @@ metric_set_tree_router = APIRouter(tags=["MetricSetTrees"], prefix=f"{SETTINGS.p
 async def create_metric_set_tree(
     metric_set_tree_in_dto: MetricSetTreeInDTO,
     metric_set_tree_service: MetricSetTreeService = Depends(Dependencies.metric_set_tree_service),
+    client: AuthorizedClient = Depends(authorizer),
 ):
+    if not client.is_super_user():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     """
     Creates a new metric_set_tree with the provided information.
     """
@@ -53,7 +59,10 @@ async def create_metric_set_tree(
 async def get_metric_set_tree(
     target_metric_set_tree_id: Annotated[uuid.UUID, Path(title="The ID of the metric_set_tree to retrieve")],
     metric_set_tree_service: MetricSetTreeService = Depends(Dependencies.metric_set_tree_service),
+    client: AuthorizedClient = Depends(authorizer),
 ):
+    if not client.is_super_user():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     """
     Fetches the details of a metric_set_tree.
     """
@@ -75,7 +84,10 @@ async def update_metric_set_tree(
     target_metric_set_tree_id: Annotated[uuid.UUID, Path(title="The ID of the metric_set_tree to update")],
     metric_set_tree_in_dto: MetricSetTreeUpdateInDTO,
     metric_set_tree_service: MetricSetTreeService = Depends(Dependencies.metric_set_tree_service),
+    client: AuthorizedClient = Depends(authorizer),
 ):
+    if not client.is_super_user():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     """
     Update the metric_set_tree's details with the specified data.
     """
@@ -100,7 +112,10 @@ async def update_metric_set_tree(
 async def delete_metric_set_tree(
     target_metric_set_tree_id: Annotated[uuid.UUID, Path(title="The ID of the metric_set_tree to delete")],
     metric_set_tree_service: MetricSetTreeService = Depends(Dependencies.metric_set_tree_service),
+    client: AuthorizedClient = Depends(authorizer),
 ):
+    if not client.is_super_user():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     """
     Deletes a metric_set_tree with the given target_metric_set_tree_id.
     """
@@ -133,7 +148,10 @@ async def find_metric_set_trees(
     filters: MetricSetTreeUpdateInDTO | None = Body(None, description="Field to filter"),
     with_deleted: bool | None = Query(False, description="Include deleted metric_set_trees"),
     metric_set_tree_service: MetricSetTreeService = Depends(Dependencies.metric_set_tree_service),
+    client: AuthorizedClient = Depends(authorizer),
 ):
+    if not client.is_super_user():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     """
     Return a list of metric_set_trees, based on given parameters.
     """
