@@ -4,9 +4,13 @@ from typing import Annotated
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, status
 from fastapi.responses import JSONResponse
 from matter_persistence.sql.utils import SortMethodModel
+from pydantic_core import from_json
 
 from app.auth import jwt_authorizer
 from app.auth.models import AuthorizedClient
+from app.common.enums.enums import EventTypeEnum, EntityTypeEnum
+from app.components.events.models.event import EventModel
+from app.components.events.service import EventService
 from app.components.metric_sets.dtos import (
     FullMetricSetOutDTO,
     MetricSetDeletionOutDTO,
@@ -34,6 +38,7 @@ authorizer = jwt_authorizer
 async def create_metric_set(
     metric_set_in_dto: MetricSetInDTO,
     metric_set_service: MetricSetService = Depends(Dependencies.metric_set_service),
+    event_service: EventService = Depends(Dependencies.event_service),
     client: AuthorizedClient = Depends(authorizer),
 ):
     if not client.is_super_user():
@@ -46,6 +51,16 @@ async def create_metric_set(
         metric_set_model=metric_set_model,
     )
     response_dto = MetricSetOutDTO.parse_obj(created_metric_set_model)
+
+    await event_service.create_event(
+        EventModel(
+            event_type=EventTypeEnum.CREATED,
+            entity_type=EntityTypeEnum.METRIC_SET,
+            node_id=created_metric_set_model.id,
+            user_id=client.user_id,
+            new_data=from_json(metric_set_in_dto.model_dump_json()),
+        )
+    )
 
     return response_dto
 
@@ -82,6 +97,7 @@ async def update_metric_set(
     target_metric_set_id: Annotated[uuid.UUID, Path(title="The ID of the metric_set to update")],
     metric_set_in_dto: MetricSetUpdateInDTO,
     metric_set_service: MetricSetService = Depends(Dependencies.metric_set_service),
+    event_service: EventService = Depends(Dependencies.event_service),
     client: AuthorizedClient = Depends(authorizer),
 ):
     if not client.is_super_user():
@@ -96,6 +112,16 @@ async def update_metric_set(
     )
     response_dto = MetricSetOutDTO.parse_obj(updated_metric_set_model)
 
+    await event_service.create_event(
+        EventModel(
+            event_type=EventTypeEnum.UPDATED,
+            entity_type=EntityTypeEnum.METRIC_SET,
+            node_id=updated_metric_set_model.id,
+            user_id=client.user_id,
+            new_data=from_json(metric_set_in_dto.model_dump_json(exclude_none=True)),
+        )
+    )
+
     return response_dto
 
 
@@ -108,6 +134,7 @@ async def update_metric_set(
 async def delete_metric_set(
     target_metric_set_id: Annotated[uuid.UUID, Path(title="The ID of the metric_set to delete")],
     metric_set_service: MetricSetService = Depends(Dependencies.metric_set_service),
+    event_service: EventService = Depends(Dependencies.event_service),
     client: AuthorizedClient = Depends(authorizer),
 ):
     if not client.is_super_user():
@@ -117,6 +144,15 @@ async def delete_metric_set(
     """
     deleted_metric_set_model = await metric_set_service.delete_metric_set(metric_set_id=target_metric_set_id)
     response_dto = MetricSetDeletionOutDTO.parse_obj(deleted_metric_set_model)
+
+    await event_service.create_event(
+        EventModel(
+            event_type=EventTypeEnum.DELETED,
+            entity_type=EntityTypeEnum.METRIC_SET,
+            node_id=target_metric_set_id,
+            user_id=client.user_id,
+        )
+    )
 
     return response_dto
 

@@ -56,7 +56,7 @@ async def create_property(
     await event_service.create_event(
         EventModel(
             event_type=EventTypeEnum.CREATED,
-            node_type=EntityTypeEnum.PROPERTY,
+            entity_type=EntityTypeEnum.PROPERTY,
             node_id=created_property_model.id,
             user_id=client.user_id,
             new_data=from_json(property_in_dto.model_dump_json()),
@@ -116,7 +116,7 @@ async def update_property(
     await event_service.create_event(
         EventModel(
             event_type=EventTypeEnum.UPDATED,
-            node_type=EntityTypeEnum.PROPERTY,
+            entity_type=EntityTypeEnum.PROPERTY,
             node_id=updated_property_model.id,
             user_id=client.user_id,
             new_data=from_json(property_in_dto.model_dump_json(exclude_none=True)),
@@ -149,7 +149,7 @@ async def delete_property(
     await event_service.create_event(
         EventModel(
             event_type=EventTypeEnum.DELETED,
-            node_type=EntityTypeEnum.PROPERTY,
+            entity_type=EntityTypeEnum.PROPERTY,
             node_id=target_property_id,
             user_id=client.user_id,
         )

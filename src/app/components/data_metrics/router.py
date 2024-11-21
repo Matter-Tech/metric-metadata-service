@@ -4,9 +4,11 @@ from typing import Annotated
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, status
 from fastapi.responses import JSONResponse
 from matter_persistence.sql.utils import SortMethodModel
+from pydantic_core import from_json
 
 from app.auth import jwt_authorizer
 from app.auth.models import AuthorizedClient
+from app.common.enums.enums import EventTypeEnum, EntityTypeEnum
 from app.components.data_metrics.dtos import (
     DataMetricDeletionOutDTO,
     DataMetricInDTO,
@@ -18,6 +20,8 @@ from app.components.data_metrics.dtos import (
 from app.components.data_metrics.models.data_metric import DataMetricModel
 from app.components.data_metrics.models.data_metric_update import DataMetricUpdateModel
 from app.components.data_metrics.service import DataMetricService
+from app.components.events.models.event import EventModel
+from app.components.events.service import EventService
 from app.dependencies import Dependencies
 from app.env import SETTINGS
 
@@ -34,6 +38,7 @@ authorizer = jwt_authorizer
 async def create_data_metric(
     data_metric_in_dto: DataMetricInDTO,
     data_metric_service: DataMetricService = Depends(Dependencies.data_metric_service),
+    event_service: EventService = Depends(Dependencies.event_service),
     client: AuthorizedClient = Depends(authorizer),
 ):
     if not client.is_super_user():
@@ -46,6 +51,16 @@ async def create_data_metric(
         data_metric_model=data_metric_model,
     )
     response_dto = DataMetricOutDTO.parse_obj(created_data_metric_model)
+
+    await event_service.create_event(
+        EventModel(
+            event_type=EventTypeEnum.CREATED,
+            entity_type=EntityTypeEnum.METRIC,
+            node_id=created_data_metric_model.id,
+            user_id=client.user_id,
+            new_data=from_json(data_metric_in_dto.model_dump_json()),
+        )
+    )
 
     return response_dto
 
@@ -82,6 +97,7 @@ async def update_data_metric(
     target_data_metric_id: Annotated[uuid.UUID, Path(title="The ID of the data_metric to update")],
     data_metric_in_dto: DataMetricUpdateInDTO,
     data_metric_service: DataMetricService = Depends(Dependencies.data_metric_service),
+    event_service: EventService = Depends(Dependencies.event_service),
     client: AuthorizedClient = Depends(authorizer),
 ):
     if not client.is_super_user():
@@ -96,6 +112,16 @@ async def update_data_metric(
     )
     response_dto = DataMetricOutDTO.parse_obj(updated_data_metric_model)
 
+    await event_service.create_event(
+        EventModel(
+            event_type=EventTypeEnum.UPDATED,
+            entity_type=EntityTypeEnum.METRIC,
+            node_id=updated_data_metric_model.id,
+            user_id=client.user_id,
+            new_data=from_json(data_metric_in_dto.model_dump_json(exclude_none=True)),
+        )
+    )
+
     return response_dto
 
 
@@ -108,6 +134,7 @@ async def update_data_metric(
 async def delete_data_metric(
     target_data_metric_id: Annotated[uuid.UUID, Path(title="The ID of the data_metric to delete")],
     data_metric_service: DataMetricService = Depends(Dependencies.data_metric_service),
+    event_service: EventService = Depends(Dependencies.event_service),
     client: AuthorizedClient = Depends(authorizer),
 ):
     if not client.is_super_user():
@@ -117,6 +144,15 @@ async def delete_data_metric(
     """
     deleted_data_metric_model = await data_metric_service.delete_data_metric(data_metric_id=target_data_metric_id)
     response_dto = DataMetricDeletionOutDTO.parse_obj(deleted_data_metric_model)
+
+    await event_service.create_event(
+        EventModel(
+            event_type=EventTypeEnum.DELETED,
+            entity_type=EntityTypeEnum.DATA_METRIC,
+            node_id=target_data_metric_id,
+            user_id=client.user_id,
+        )
+    )
 
     return response_dto
 

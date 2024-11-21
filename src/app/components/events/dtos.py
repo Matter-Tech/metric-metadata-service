@@ -10,7 +10,7 @@ from app.common.enums.enums import EntityTypeEnum, EventTypeEnum
 
 class EventFilterInDTO(BaseModel):
     event_type: EventTypeEnum | None = Field(None, alias="eventType")
-    node_type: EntityTypeEnum | None = Field(None, alias="nodeType")
+    entity_type: EntityTypeEnum | None = Field(None, alias="entityType")
     node_id: uuid.UUID | None = Field(None, alias="nodeId")
     user_id: uuid.UUID | None = Field(None, alias="userId")
 
@@ -21,7 +21,7 @@ class EventOutDTO(FoundationModel):
 
 class FullEventOutDTO(EventOutDTO):
     event_type: EventTypeEnum | None = Field(None, alias="eventType")
-    node_type: EntityTypeEnum | None = Field(None, alias="nodeType")
+    entity_type: EntityTypeEnum | None = Field(None, alias="entityType")
     node_id: uuid.UUID | None = Field(None, alias="nodeId")
     user_id: uuid.UUID | None = Field(None, alias="userId")
     created: datetime | None = Field(None, alias="timestamp")

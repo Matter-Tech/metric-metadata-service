@@ -60,9 +60,6 @@ class PropertyService:
     ) -> PropertyModel:
         try:
             created_property_model = await self._dal.create_property(property_model)
-            # new_data = FullPropertyOutDTO.parse_obj(property_model)
-            # event = EventModel(event_type=EventTypeEnum.CREATED, node_type=EntityTypeEnum.PROPERTY, node_id=created_property_model.id, new_data=new_data.model_dump_json())
-            # await self._event_service.create_event(event)
         except DatabaseError as ex:
             raise ServerError(description=ex.description, detail=ex.detail)
 
