@@ -26,7 +26,7 @@ For more information about Matter, visit our website at [https://www.thisismatte
 
 The template showcases two distinct demo workflows:
 
-1. **Items** - Shows how cache is used for persistent storage, with Celery as a batching tool and asynchronous flow.
+1. **Metrics** - Shows how cache is used for persistent storage, with Celery as a batching tool and asynchronous flow.
 2. **Organizations** - Demonstrates the use of Databases via ORM.
 
 In the near future, we aim to implement this logic in Cookie Cutter.
