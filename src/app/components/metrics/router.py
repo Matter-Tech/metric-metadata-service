@@ -8,7 +8,7 @@ from pydantic_core import from_json
 
 from app.auth import jwt_authorizer
 from app.auth.models import AuthorizedClient
-from app.common.enums.enums import EventTypeEnum, EntityTypeEnum
+from app.common.enums.enums import EntityTypeEnum, EventTypeEnum
 from app.components.events.models.event import EventModel
 from app.components.events.service import EventService
 from app.components.metrics.dtos import (

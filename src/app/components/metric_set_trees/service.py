@@ -25,8 +25,8 @@ class MetricSetTreeService:
     @count_occurrence(label="metric_set_trees.get_metric_set_tree")
     @measure_processing_time(label="metric_set_trees.get_metric_set_tree")
     async def get_metric_set_tree(
-            self,
-            metric_set_tree_id: uuid.UUID,
+        self,
+        metric_set_tree_id: uuid.UUID,
     ) -> MetricSetTreeModel:
         metric_set_tree = await self._dal.get_metric_set_tree(metric_set_tree_id=metric_set_tree_id)
         return await self._convert_metadata_out(metric_set_tree=metric_set_tree)
@@ -34,13 +34,13 @@ class MetricSetTreeService:
     @count_occurrence(label="metric_set_trees.find_metric_set_trees")
     @measure_processing_time(label="metric_set_trees.find_metric_set_trees")
     async def find_metric_set_trees(
-            self,
-            skip: int = 0,
-            limit: int = None,
-            sort_field: str | None = None,
-            sort_method: SortMethodModel | None = None,
-            with_deleted: bool = False,
-            filters: dict | None = None,
+        self,
+        skip: int = 0,
+        limit: int = None,
+        sort_field: str | None = None,
+        sort_method: SortMethodModel | None = None,
+        with_deleted: bool = False,
+        filters: dict | None = None,
     ) -> List[MetricSetTreeModel]:
         metric_set_trees = await self._dal.find_metric_set_trees(
             skip=skip,
@@ -50,22 +50,24 @@ class MetricSetTreeService:
             with_deleted=with_deleted,
             filters=filters,
         )
-        return await asyncio.gather(*[
-            self._convert_metadata_out(metric_set_tree=metric_set_tree) for metric_set_tree in metric_set_trees
-        ])
+        return await asyncio.gather(
+            *[self._convert_metadata_out(metric_set_tree=metric_set_tree) for metric_set_tree in metric_set_trees]
+        )
 
     @count_occurrence(label="metric_set_trees.create_metric_set_tree")
     @measure_processing_time(label="metric_set_trees.create_metric_set_tree")
     async def create_metric_set_tree(
-            self,
-            metric_set_tree_model: MetricSetTreeModel,
+        self,
+        metric_set_tree_model: MetricSetTreeModel,
     ) -> MetricSetTreeModel:
         try:
             metric_set_tree_model.meta_data = await self._convert_metadata_names_to_ids(
-                meta_data=metric_set_tree_model.meta_data)
+                meta_data=metric_set_tree_model.meta_data
+            )
 
             created_metric_set_tree_model = await self._dal.create_metric_set_tree(
-                metric_set_tree_model=metric_set_tree_model)
+                metric_set_tree_model=metric_set_tree_model
+            )
         except DatabaseError as ex:
             raise ServerError(description=ex.description, detail=ex.detail)
 
@@ -74,16 +76,18 @@ class MetricSetTreeService:
     @count_occurrence(label="metric_set_trees.update_metric_set_tree")
     @measure_processing_time(label="metric_set_trees.update_metric_set_tree")
     async def update_metric_set_tree(
-            self,
-            metric_set_tree_id: uuid.UUID,
-            metric_set_tree_update_model: MetricSetTreeUpdateModel,
+        self,
+        metric_set_tree_id: uuid.UUID,
+        metric_set_tree_update_model: MetricSetTreeUpdateModel,
     ) -> MetricSetTreeModel:
         try:
             metric_set_tree_update_model.meta_data = await self._convert_metadata_names_to_ids(
-                meta_data=metric_set_tree_update_model.meta_data)
+                meta_data=metric_set_tree_update_model.meta_data
+            )
 
-            updated_metric_set_tree = await self._dal.update_metric_set_tree(metric_set_tree_id=metric_set_tree_id,
-                                                                       metric_set_tree_update_model=metric_set_tree_update_model)
+            updated_metric_set_tree = await self._dal.update_metric_set_tree(
+                metric_set_tree_id=metric_set_tree_id, metric_set_tree_update_model=metric_set_tree_update_model
+            )
         except DatabaseError as ex:
             raise ServerError(description=ex.description, detail=ex.detail)
 
@@ -92,12 +96,13 @@ class MetricSetTreeService:
     @count_occurrence(label="metric_set_trees.delete_metric_set_tree")
     @measure_processing_time(label="metric_set_trees.delete_metric_set_tree")
     async def delete_metric_set_tree(
-            self,
-            metric_set_tree_id: uuid.UUID,
+        self,
+        metric_set_tree_id: uuid.UUID,
     ) -> MetricSetTreeModel:
         try:
-            deleted_metric_set_tree = await self._dal.delete_metric_set_tree(metric_set_tree_id=metric_set_tree_id,
-                                                                       soft_delete=True)
+            deleted_metric_set_tree = await self._dal.delete_metric_set_tree(
+                metric_set_tree_id=metric_set_tree_id, soft_delete=True
+            )
         except DatabaseError as ex:
             raise ServerError(description=ex.description, detail=ex.detail)
 

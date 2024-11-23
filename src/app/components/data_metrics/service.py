@@ -51,9 +51,9 @@ class DataMetricService:
             filters=filters,
         )
 
-        return await asyncio.gather(*[
-            self._convert_metadata_out(data_metric=data_metric) for data_metric in data_metrics
-        ])
+        return await asyncio.gather(
+            *[self._convert_metadata_out(data_metric=data_metric) for data_metric in data_metrics]
+        )
 
     @count_occurrence(label="data_metrics.create_data_metric")
     @measure_processing_time(label="data_metrics.create_data_metric")
@@ -63,7 +63,8 @@ class DataMetricService:
     ) -> DataMetricModel:
         try:
             data_metric_model.meta_data = await self._convert_metadata_names_to_ids(
-                meta_data=data_metric_model.meta_data)
+                meta_data=data_metric_model.meta_data
+            )
             created_data_metric_model = await self._dal.create_data_metric(data_metric_model=data_metric_model)
         except DatabaseError as ex:
             raise ServerError(description=ex.description, detail=ex.detail)
@@ -79,8 +80,11 @@ class DataMetricService:
     ) -> DataMetricModel:
         try:
             data_metric_update_model.meta_data = await self._convert_metadata_names_to_ids(
-                meta_data=data_metric_update_model.meta_data)
-            updated_data_metric = await self._dal.update_data_metric(data_metric_id=data_metric_id, data_metric_update_model=data_metric_update_model)
+                meta_data=data_metric_update_model.meta_data
+            )
+            updated_data_metric = await self._dal.update_data_metric(
+                data_metric_id=data_metric_id, data_metric_update_model=data_metric_update_model
+            )
         except DatabaseError as ex:
             raise ServerError(description=ex.description, detail=ex.detail)
 

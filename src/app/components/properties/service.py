@@ -9,7 +9,6 @@ from matter_observability.metrics import (
 from matter_persistence.sql.exceptions import DatabaseError
 from matter_persistence.sql.utils import SortMethodModel
 
-from app.components.events.service import EventService
 from app.components.properties.dal import PropertyDAL
 from app.components.properties.models.property import PropertyModel
 from app.components.properties.models.property_update import PropertyUpdateModel

@@ -51,9 +51,7 @@ class MetricSetService:
             filters=filters,
         )
 
-        return await asyncio.gather(*[
-            self._convert_metadata_out(metric_set=metric_set) for metric_set in metric_sets
-        ])
+        return await asyncio.gather(*[self._convert_metadata_out(metric_set=metric_set) for metric_set in metric_sets])
 
     @count_occurrence(label="metric_sets.create_metric_set")
     @measure_processing_time(label="metric_sets.create_metric_set")
@@ -79,9 +77,12 @@ class MetricSetService:
     ) -> MetricSetModel:
         try:
             metric_set_update_model.meta_data = await self._convert_metadata_names_to_ids(
-            meta_data=metric_set_update_model.meta_data)
+                meta_data=metric_set_update_model.meta_data
+            )
 
-            updated_metric_set = await self._dal.update_metric_set(metric_set_id=metric_set_id, metric_set_update_model=metric_set_update_model)
+            updated_metric_set = await self._dal.update_metric_set(
+                metric_set_id=metric_set_id, metric_set_update_model=metric_set_update_model
+            )
         except DatabaseError as ex:
             raise ServerError(description=ex.description, detail=ex.detail)
 

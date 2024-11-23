@@ -72,9 +72,7 @@ class Dependencies:
         )
 
         cls._data_metric_dal = DataMetricDAL(database_manager=cls.db_manager())
-        cls._data_metric_service = DataMetricService(
-            dal=cls._data_metric_dal, meta_data_service=cls._meta_data_service
-        )
+        cls._data_metric_service = DataMetricService(dal=cls._data_metric_dal, meta_data_service=cls._meta_data_service)
 
         cls._metric_dal = MetricDAL(database_manager=cls.db_manager())
         cls._metric_service = MetricService(dal=cls._metric_dal, meta_data_service=cls._meta_data_service)

@@ -25,8 +25,8 @@ class MetricService:
     @count_occurrence(label="metrics.get_metric")
     @measure_processing_time(label="metrics.get_metric")
     async def get_metric(
-            self,
-            metric_id: uuid.UUID,
+        self,
+        metric_id: uuid.UUID,
     ) -> MetricModel:
         metric = await self._dal.get_metric(metric_id=metric_id)
         return await self._convert_metadata_out(metric=metric)
@@ -34,13 +34,13 @@ class MetricService:
     @count_occurrence(label="metrics.find_metrics")
     @measure_processing_time(label="metrics.find_metrics")
     async def find_metrics(
-            self,
-            skip: int = 0,
-            limit: int = None,
-            sort_field: str | None = None,
-            sort_method: SortMethodModel | None = None,
-            with_deleted: bool = False,
-            filters: dict | None = None,
+        self,
+        skip: int = 0,
+        limit: int = None,
+        sort_field: str | None = None,
+        sort_method: SortMethodModel | None = None,
+        with_deleted: bool = False,
+        filters: dict | None = None,
     ) -> List[MetricModel]:
         metrics = await self._dal.find_metrics(
             skip=skip,
@@ -51,15 +51,13 @@ class MetricService:
             filters=filters,
         )
 
-        return await asyncio.gather(*[
-            self._convert_metadata_out(metric) for metric in metrics
-        ])
+        return await asyncio.gather(*[self._convert_metadata_out(metric) for metric in metrics])
 
     @count_occurrence(label="metrics.create_metric")
     @measure_processing_time(label="metrics.create_metric")
     async def create_metric(
-            self,
-            metric_model: MetricModel,
+        self,
+        metric_model: MetricModel,
     ) -> MetricModel:
         try:
             metric_model.meta_data = await self._convert_metadata_names_to_ids(meta_data=metric_model.meta_data)
@@ -73,13 +71,14 @@ class MetricService:
     @count_occurrence(label="metrics.update_metric")
     @measure_processing_time(label="metrics.update_metric")
     async def update_metric(
-            self,
-            metric_id: uuid.UUID,
-            metric_update_model: MetricUpdateModel,
+        self,
+        metric_id: uuid.UUID,
+        metric_update_model: MetricUpdateModel,
     ) -> MetricModel:
         try:
             metric_update_model.meta_data = await self._convert_metadata_names_to_ids(
-                meta_data=metric_update_model.meta_data)
+                meta_data=metric_update_model.meta_data
+            )
 
             updated_metric = await self._dal.update_metric(metric_id=metric_id, metric_update_model=metric_update_model)
         except DatabaseError as ex:
@@ -89,8 +88,8 @@ class MetricService:
     @count_occurrence(label="metrics.delete_metric")
     @measure_processing_time(label="metrics.delete_metric")
     async def delete_metric(
-            self,
-            metric_id: uuid.UUID,
+        self,
+        metric_id: uuid.UUID,
     ) -> MetricModel:
         try:
             deleted_metric = await self._dal.delete_metric(metric_id, soft_delete=True)
@@ -112,6 +111,7 @@ class MetricService:
     async def _convert_metadata_names_to_ids(self, meta_data: dict) -> dict:
         if meta_data is None:
             return {}
+
         return await self._meta_data_service.convert_metadata_names_to_ids(
             entity_type=EntityTypeEnum.METRIC, meta_data=meta_data
         )

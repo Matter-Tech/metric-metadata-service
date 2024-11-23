@@ -21,9 +21,7 @@ class MetaDataService:
     ) -> dict:
         property_name_to_id = {
             prop.property_name: str(prop.id)
-            for prop in await self._property_service.find_properties(
-                filters={"entity_type": entity_type}
-            )
+            for prop in await self._property_service.find_properties(filters={"entity_type": entity_type})
         }
 
         invalid_keys = set(meta_data) - set(property_name_to_id)
@@ -35,24 +33,18 @@ class MetaDataService:
 
         return {property_name_to_id[key]: value for key, value in meta_data.items()}
 
-
     @count_occurrence(label="utils.transform_metadata")
     @measure_processing_time(label="utils.transform_metadata")
     async def convert_metadata_ids_to_names(
-            self,
-            entity_type: EntityTypeEnum,
-            meta_data: dict,
+        self,
+        entity_type: EntityTypeEnum,
+        meta_data: dict,
     ) -> dict:
         # Fetch property mappings for the entity type
         property_id_to_name = {
             str(prop.id): prop.property_name
-            for prop in await self._property_service.find_properties(
-                filters={"entity_type": entity_type}
-            )
+            for prop in await self._property_service.find_properties(filters={"entity_type": entity_type})
         }
 
         # Transform metadata
-        return {
-            property_id_to_name.get(property_id, property_id): value
-            for property_id, value in meta_data.items()
-        }
+        return {property_id_to_name.get(property_id, property_id): value for property_id, value in meta_data.items()}
