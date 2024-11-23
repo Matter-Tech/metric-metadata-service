@@ -19,10 +19,8 @@ class PropertyService:
     def __init__(
         self,
         dal: PropertyDAL,
-        event_service: EventService,
     ):
         self._dal = dal
-        self._event_service = event_service
 
     @count_occurrence(label="properties.get_property")
     @measure_processing_time(label="properties.get_property")
