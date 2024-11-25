@@ -10,18 +10,22 @@ from app.components.properties.models.property import DataTypeEnum, EntityTypeEn
 
 class PropertyInDTO(BaseModel):
     property_name: str = Field(..., max_length=100, alias="propertyName")
-    property_description: str = Field(..., alias="propertyDescription")
+    property_description: str | None = Field(None, alias="propertyDescription")
     data_type: DataTypeEnum = Field(..., alias="dataType")
     entity_type: EntityTypeEnum = Field(..., alias="entityType")
     is_required: bool = Field(..., alias="isRequired")
 
     @field_validator("property_name")
-    def validate_property_name(cls, property_name):
-        if any(char.isdigit() for char in property_name):
-            raise ValueError("Property Name must contain only alphabetic characters")
-        if len(property_name) == 0:
-            raise ValueError("Property Name cannot be empty")
-        return property_name
+    def validate_property_name(cls, value):
+        if not value.isalpha():
+            raise ValueError("Property Name must only contain alphabetic characters (no spaces, numbers, or special characters).")
+        return value
+
+    @field_validator("property_description")
+    def validate_property_description(cls, value):
+        if value and len(value.strip()) == 0:
+            raise ValueError("Property Description cannot be only whitespace.")
+        return value
 
 
 class PropertyUpdateInDTO(PropertyInDTO):
@@ -31,6 +35,17 @@ class PropertyUpdateInDTO(PropertyInDTO):
     entity_type: EntityTypeEnum | None = Field(None, alias="entityType")
     is_required: bool | None = Field(None, alias="isRequired")
 
+    @field_validator("property_name")
+    def validate_property_name(cls, value):
+        if value and not value.isalpha():
+            raise ValueError("Property Name must only contain alphabetic characters (no spaces, numbers, or special characters).")
+        return value
+
+    @field_validator("property_description")
+    def validate_property_description(cls, value):
+        if value and len(value.strip()) == 0:
+            raise ValueError("Property Description cannot be only whitespace.")
+        return value
 
 class PropertyOutDTO(FoundationModel):
     id: uuid.UUID
@@ -38,7 +53,7 @@ class PropertyOutDTO(FoundationModel):
 
 class FullPropertyOutDTO(PropertyOutDTO):
     property_name: str = Field(..., max_length=100, alias="propertyName")
-    property_description: str = Field(..., alias="propertyDescription")
+    property_description: str | None = Field(None, alias="propertyDescription")
     data_type: DataTypeEnum = Field(..., alias="dataType")
     entity_type: EntityTypeEnum = Field(..., alias="entityType")
     is_required: bool = Field(..., alias="isRequired")

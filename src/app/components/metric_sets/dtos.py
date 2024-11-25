@@ -12,7 +12,7 @@ class MetricSetInDTO(BaseModel):
     status: StatusEnum = Field(..., alias="status")
     short_name: str = Field(..., max_length=100, alias="shortName")
     placement: PlacementEnum = Field(..., alias="placement")
-    meta_data: dict = Field(..., alias="metaData")
+    meta_data: dict | None = Field(None, alias="metaData")
 
 
 class MetricSetUpdateInDTO(MetricSetInDTO):
