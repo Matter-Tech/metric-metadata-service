@@ -27,18 +27,13 @@ spec:
   rules:
     - to:
         - operation:
-            paths: [ "/health", "/analysis/jobs/*", "/organizations", "/metrics" ]
+            paths: [ "/health" ]
             methods: [ "GET" ]
-      when:
-        - key: request.auth.claims[iss]
-          values: [ "https://thisismatter-dev.eu.auth0.com/" ]
-
     - to:
         - operation:
-            paths: [ "/analysis/jobs" ]
-            methods: [ "POST" ]
+            methods: [ "GET", "POST", "PUT", "DELETE" ]
       when:
         - key: request.auth.claims[iss]
           values: [ "https://thisismatter-dev.eu.auth0.com/" ]
-        - key: request.auth.claims[scope]
-          values: [ "metric-metadata-service" ]
+        - key: request.auth.claims[https://auth.thisismatter.com/permissions/]
+          values: [ 'platform:superuser:write' ]
