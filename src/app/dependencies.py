@@ -61,7 +61,7 @@ class Dependencies:
         cls._property_dal = PropertyDAL(database_manager=cls.db_manager())
         cls._property_service = PropertyService(dal=cls._property_dal)
 
-        cls._meta_data_service = MetaDataService(property_service=cls._property_service)
+        cls._meta_data_service = MetaDataService(property_service=cls._property_service, cache_manager=cls._cache_manager)
 
         cls._metric_set_dal = MetricSetDAL(database_manager=cls.db_manager())
         cls._metric_set_service = MetricSetService(dal=cls._metric_set_dal, meta_data_service=cls._meta_data_service)
