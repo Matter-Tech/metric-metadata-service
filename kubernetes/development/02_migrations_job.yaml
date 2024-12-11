@@ -24,6 +24,8 @@ spec:
           envFrom:
             - secretRef:
                 name: metric-metadata-app
+            - secretRef:
+                name: metric-metadata-redis-password
             - configMapRef:
                 name: metric-metadata-service-config
       restartPolicy: OnFailure
