@@ -16,7 +16,9 @@
      # Volume snapshot backups
      volumeSnapshot:
         className: snapshotclass
- ---
+
+---
+
  apiVersion: postgresql.cnpg.io/v1
  kind: ScheduledBackup
  metadata:

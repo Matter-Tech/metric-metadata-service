@@ -15,7 +15,7 @@ jobs:
 
     strategy:
       matrix:
-        stage: [ development, production ]
+        stage: [ development ]
 
     runs-on: ubuntu-latest
 
