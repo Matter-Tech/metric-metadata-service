@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: metric-metadata-service-migrations-2024-08-23-2e0382f
+  name: metric-metadata-service-migrations-2024-12-11-35081de
   namespace: development
 spec:
   template:
@@ -14,7 +14,7 @@ spec:
       serviceAccountName: metric-metadata-service-account
       containers:
         - name: metric-metadata-service-migrations
-          image: 761124675977.dkr.ecr.eu-central-1.amazonaws.com/core_services/metric-metadata-service:2024-08-23-2e0382f
+          image: 761124675977.dkr.ecr.eu-central-1.amazonaws.com/core_services/metric-metadata-service:2024-12-11-35081de
           command: ["poetry"]
           args: ["run", "alembic", "upgrade", "head"]
           imagePullPolicy: "Always"
@@ -23,7 +23,7 @@ spec:
               value: migration
           envFrom:
             - secretRef:
-                name: metric-metadata-service-secrets
+                name: metric-metadata-app
             - configMapRef:
                 name: metric-metadata-service-config
       restartPolicy: OnFailure
