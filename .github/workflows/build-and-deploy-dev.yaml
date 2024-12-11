@@ -75,7 +75,6 @@ jobs:
         ECR_REPOSITORY: core_services/metric-metadata-service
       run: |
         docker build -f docker/Dockerfile.base -t metric-metadata-service-base-image:latest .
-        docker build -f docker/Dockerfile.production -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
     - name: Configure Deployment Files
