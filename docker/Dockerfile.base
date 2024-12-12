@@ -8,7 +8,8 @@ RUN apt-get update && apt-get upgrade -y \
     && apt-get clean  \
     && pip install --upgrade pip
 
-RUN useradd --uid 10000 runner
+RUN useradd --uid 10000 runner \
+    && chown 10000:10000 /opt
 
 ENV PYTHONBUFFERED = 1
 
