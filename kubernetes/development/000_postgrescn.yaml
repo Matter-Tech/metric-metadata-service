@@ -1,0 +1,32 @@
+ apiVersion: postgresql.cnpg.io/v1
+ kind: Cluster
+ metadata:
+   name: metric-metadata
+   annotations:
+     argocd.argoproj.io/sync-wave: "-3"
+   labels:
+     authorizeConnectionFromCNPG: "yes"
+ spec:
+   instances: 3
+   storage:
+     size: 2Gi
+   walStorage:
+     size: 2Gi
+   backup:
+     # Volume snapshot backups
+     volumeSnapshot:
+        className: snapshotclass
+
+---
+
+ apiVersion: postgresql.cnpg.io/v1
+ kind: ScheduledBackup
+ metadata:
+   name: metric-metadata
+ spec:
+   cluster:
+     name: metric-metadata
+   method: volumeSnapshot
+   schedule: '0 0 0 * * *'
+   backupOwnerReference: cluster
+   immediate: true

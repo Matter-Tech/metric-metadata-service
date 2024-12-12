@@ -1,8 +1,0 @@
-FROM metric-metadata-service-base-image:latest as production
-
-# Copy sources to have them baked into the image directly
-COPY src/ ./
-
-EXPOSE 8080
-
-CMD [ "bash", "-c", "./startup.sh" ]

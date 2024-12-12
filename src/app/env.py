@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     server_port: int = 8080
     server_log_level: str = "info"
     path_prefix: str = ""
-    instance_name: str = ""
+    instance_name: str = "metric-metadata-service"
     domain_name: str = ""
 
     # Security - JWT
