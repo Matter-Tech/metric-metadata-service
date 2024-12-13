@@ -58,3 +58,17 @@ def test_delete_property_by_id_endpoint(server_url, auth_bearer_jwt, property_id
     assert response_data["createdAtTimestamp"] is not None
     assert response_data["id"] is not None
     assert response_data["deletedAt"] is not None
+
+
+@pytest.mark.parametrize("server_url", ["properties"], indirect=True)
+def test_search_property(server_url, auth_bearer_jwt):
+    response = post(
+        url=f"{server_url}/search",
+        headers={"Authorization": f"Bearer {auth_bearer_jwt}"},
+    )
+
+    assert response.status_code == 200
+    response_data = response.json
+    assert response_data["createdAt"] is not None
+    assert response_data["createdAtTimestamp"] is not None
+    assert response_data["count"] is not None
