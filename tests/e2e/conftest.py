@@ -1,9 +1,8 @@
 import json
 
 import pytest
-from matter_api_client.http_client import post
-
 from app.env import SETTINGS
+from matter_api_client.http_client import post
 
 
 @pytest.fixture(scope="session")
@@ -15,6 +14,7 @@ def auth_bearer_jwt() -> str:
 def server_url(request: pytest.FixtureRequest) -> str:
     return f"http://{SETTINGS.domain_name}{SETTINGS.path_prefix}/v1/{request.param}"
 
+
 @pytest.fixture(scope="session")
 def property_id(server_url, auth_bearer_jwt):
     # Create a new property and return its ID
@@ -23,12 +23,8 @@ def property_id(server_url, auth_bearer_jwt):
         "propertyDescription": "Test Description",
         "dataType": "string",
         "entityType": "metric",
-        "isRequired": False
+        "isRequired": False,
     }
-    response = post(
-        url=server_url,
-        payload=json.dumps(payload),
-        headers={"Authorization": f"Bearer {auth_bearer_jwt}"}
-    )
+    response = post(url=server_url, payload=json.dumps(payload), headers={"Authorization": f"Bearer {auth_bearer_jwt}"})
     assert response.status_code == 201
     return response.json["id"]

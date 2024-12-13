@@ -2,10 +2,16 @@ from datetime import datetime, timezone
 from uuid import uuid4
 
 import pytest
+from app.common.enums.enums import DataTypeEnum, EntityTypeEnum
+from app.components.properties.dtos import (
+    FullPropertyOutDTO,
+    PropertyDeletionOutDTO,
+    PropertyInDTO,
+    PropertyListOutDTO,
+    PropertyUpdateInDTO,
+)
 from pydantic import ValidationError
 
-from app.common.enums.enums import EntityTypeEnum, DataTypeEnum
-from app.components.properties.dtos import PropertyListOutDTO, PropertyDeletionOutDTO, FullPropertyOutDTO, PropertyUpdateInDTO, PropertyInDTO
 
 def get_valid_property_data():
     return {
@@ -13,8 +19,9 @@ def get_valid_property_data():
         "propertyDescription": "A valid description",
         "dataType": DataTypeEnum.STRING,
         "entityType": EntityTypeEnum.METRIC,
-        "isRequired": True
+        "isRequired": True,
     }
+
 
 # Tests for PropertyInDTO
 def test_property_in_dto_valid():
@@ -26,11 +33,13 @@ def test_property_in_dto_valid():
     assert dto.entity_type == EntityTypeEnum.METRIC
     assert dto.is_required is True
 
+
 def test_property_in_dto_invalid_property_name_with_spaces():
     data = get_valid_property_data()
     data["propertyName"] = "Invalid Name"
     with pytest.raises(ValidationError, match="Property Name must only contain alphabetic characters"):
         PropertyInDTO(**data)
+
 
 def test_property_in_dto_invalid_property_name_with_numbers():
     data = get_valid_property_data()
@@ -38,11 +47,13 @@ def test_property_in_dto_invalid_property_name_with_numbers():
     with pytest.raises(ValidationError, match="Property Name must only contain alphabetic characters"):
         PropertyInDTO(**data)
 
+
 def test_property_in_dto_invalid_property_description_whitespace():
     data = get_valid_property_data()
     data["propertyDescription"] = "   "
     with pytest.raises(ValidationError, match="Property Description cannot be only whitespace"):
         PropertyInDTO(**data)
+
 
 # Tests for PropertyUpdateInDTO
 def test_property_update_in_dto_valid_partial_update():
@@ -51,7 +62,7 @@ def test_property_update_in_dto_valid_partial_update():
         "propertyDescription": "Updated description",
         "dataType": None,
         "entityType": EntityTypeEnum.METRIC,
-        "isRequired": None
+        "isRequired": None,
     }
     dto = PropertyUpdateInDTO(**data)
     assert dto.property_name is None
@@ -60,15 +71,18 @@ def test_property_update_in_dto_valid_partial_update():
     assert dto.entity_type == EntityTypeEnum.METRIC
     assert dto.is_required is None
 
+
 def test_property_update_in_dto_invalid_property_name():
     data = {"propertyName": "Invalid Name"}
     with pytest.raises(ValidationError, match="Property Name must only contain alphabetic characters"):
         PropertyUpdateInDTO(**data)
 
+
 def test_property_update_in_dto_invalid_property_description_whitespace():
     data = {"propertyDescription": "   "}
     with pytest.raises(ValidationError, match="Property Description cannot be only whitespace"):
         PropertyUpdateInDTO(**data)
+
 
 # Tests for FullPropertyOutDTO
 def test_full_property_out_dto_valid():
@@ -78,7 +92,7 @@ def test_full_property_out_dto_valid():
         "propertyDescription": "Valid description",
         "dataType": DataTypeEnum.STRING,
         "entityType": EntityTypeEnum.METRIC,
-        "isRequired": True
+        "isRequired": True,
     }
     dto = FullPropertyOutDTO(**data)
     assert dto.id
@@ -88,15 +102,14 @@ def test_full_property_out_dto_valid():
     assert dto.entity_type == EntityTypeEnum.METRIC
     assert dto.is_required is True
 
+
 # Tests for PropertyDeletionOutDTO
 def test_property_deletion_out_dto_valid():
-    data = {
-        "id": uuid4(),
-        "deletedAt": datetime.now(tz=timezone.utc)
-    }
+    data = {"id": uuid4(), "deletedAt": datetime.now(tz=timezone.utc)}
     dto = PropertyDeletionOutDTO(**data)
     assert dto.id
     assert dto.deleted_at
+
 
 # Tests for PropertyListOutDTO
 def test_property_list_out_dto_valid():
@@ -109,7 +122,7 @@ def test_property_list_out_dto_valid():
                 "propertyDescription": "Valid description 1",
                 "dataType": DataTypeEnum.STRING,
                 "entityType": EntityTypeEnum.METRIC,
-                "isRequired": True
+                "isRequired": True,
             },
             {
                 "id": uuid4(),
@@ -117,9 +130,9 @@ def test_property_list_out_dto_valid():
                 "propertyDescription": "Valid description 2",
                 "dataType": DataTypeEnum.NUMBER,
                 "entityType": EntityTypeEnum.METRIC_SET,
-                "isRequired": False
-            }
-        ]
+                "isRequired": False,
+            },
+        ],
     }
     dto = PropertyListOutDTO(**data)
     assert dto.count == 2

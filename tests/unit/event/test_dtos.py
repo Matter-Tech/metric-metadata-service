@@ -2,15 +2,15 @@ from datetime import datetime, timezone
 from uuid import uuid4
 
 import pytest
+from app.common.enums.enums import EntityTypeEnum, EventTypeEnum
+from app.components.events.dtos import EventDeletionOutDTO, EventFilterInDTO, EventListOutDTO, FullEventOutDTO
 from pydantic import ValidationError
-
-from app.common.enums.enums import EventTypeEnum, EntityTypeEnum
-from app.components.events.dtos import EventDeletionOutDTO, FullEventOutDTO, EventListOutDTO, EventFilterInDTO
 
 
 # Utility: Generate a valid UUID
 def generate_uuid():
     return uuid4()
+
 
 # Utility: Sample valid data
 def get_valid_event_data():
@@ -23,6 +23,7 @@ def get_valid_event_data():
         "timestamp": datetime.now(tz=timezone.utc),
         "newData": {"key": "value"},
     }
+
 
 # Tests for EventFilterInDTO
 def test_event_filter_in_dto_valid():
@@ -38,6 +39,7 @@ def test_event_filter_in_dto_valid():
     assert dto.node_id is not None
     assert dto.user_id is not None
 
+
 def test_event_filter_in_dto_invalid_node_id():
     data = {
         "eventType": EventTypeEnum.CREATED,
@@ -48,6 +50,7 @@ def test_event_filter_in_dto_invalid_node_id():
     with pytest.raises(ValidationError, match="Input should be a valid UUID"):
         EventFilterInDTO(**data)
 
+
 def test_event_filter_in_dto_missing_fields():
     data = {}
     dto = EventFilterInDTO(**data)
@@ -55,6 +58,7 @@ def test_event_filter_in_dto_missing_fields():
     assert dto.entity_type is None
     assert dto.node_id is None
     assert dto.user_id is None
+
 
 # Tests for FullEventOutDTO
 def test_full_event_out_dto_valid():
@@ -68,11 +72,13 @@ def test_full_event_out_dto_valid():
     assert dto.created == data["timestamp"]
     assert dto.new_data == {"key": "value"}
 
+
 def test_full_event_out_dto_invalid_new_data():
     data = get_valid_event_data()
     data["newData"] = "invalid-data"
     with pytest.raises(ValidationError, match="Input should be a valid dictionary"):
         FullEventOutDTO(**data)
+
 
 # Tests for EventDeletionOutDTO
 def test_event_deletion_out_dto_valid():
@@ -84,11 +90,13 @@ def test_event_deletion_out_dto_valid():
     assert dto.id == data["id"]
     assert dto.deleted_at == data["deletedAt"]
 
+
 def test_event_deletion_out_dto_default_deleted_at():
     data = {"id": generate_uuid()}
     dto = EventDeletionOutDTO(**data)
     assert dto.deleted_at is not None
     assert isinstance(dto.deleted_at, datetime)
+
 
 # Tests for EventListOutDTO
 def test_event_list_out_dto_valid():
@@ -101,6 +109,7 @@ def test_event_list_out_dto_valid():
     assert dto.count == 2
     assert len(dto.events) == 2
     assert dto.events[0].event_type == EventTypeEnum.CREATED
+
 
 def test_event_list_out_dto_invalid_events():
     data = {
