@@ -61,18 +61,6 @@ jobs:
       - name: Setting up primary source path
         run: echo "PYTHONPATH=$(pwd):$(pwd)/src" >> $GITHUB_ENV
 
-      - name: Starting docker-compose
-        run: |
-          docker compose -f docker/docker-compose.yaml build base-builder 
-          docker compose -f docker/docker-compose.yaml up --build -d
-
-      - name: Waiting for application to start
-        env:
-          ATTEMPTS: 0
-          MAX_ATTEMPTS: 40
-        run: |
-          bash -c "until (curl --output /dev/null --silent --fail http://localhost:8080); do if ((ATTEMPTS == MAX_ATTEMPTS)); then exit 1; fi; ((ATTEMPTS++)); printf '.'; sleep 1; done"
-
       - name: Running tests
         run: poetry run pytest --capture=tee-sys tests/unit
 

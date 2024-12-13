@@ -51,8 +51,8 @@ async def initialize_db(database_manager: DatabaseManager) -> AsyncGenerator[Non
         cfg.attributes["connection"] = connection
         command.upgrade(cfg, "head")
 
-    alembic_config = config.Config("../src/alembic.ini")
-    alembic_config.set_main_option("script_location", "../src/alembic")
+    alembic_config = config.Config("src/alembic.ini")
+    alembic_config.set_main_option("script_location", "src/alembic")
     async with database_manager.connect() as conn:
         await conn.run_sync(run_upgrade, alembic_config)
 
