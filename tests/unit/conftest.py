@@ -3,20 +3,20 @@ from typing import AsyncGenerator, Generator
 import pytest
 import pytest_asyncio
 from alembic import command, config
+from app.common.enums.enums import DataTypeEnum, EntityTypeEnum
+from app.components.properties.dal import PropertyDAL
+from app.components.properties.models.property import PropertyModel
+from app.components.properties.service import PropertyService
 from matter_persistence.sql.manager import DatabaseManager
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 from testcontainers.core.container import DockerContainer
 from testcontainers.postgres import PostgresContainer
 
-from app.common.enums.enums import EntityTypeEnum, DataTypeEnum
-from app.components.properties.dal import PropertyDAL
-from app.components.properties.models.property import PropertyModel
-from app.components.properties.service import PropertyService
-
 _TEST_DB_USER = "metric-metadata-api"
 _TEST_DB_PASSWORD = "Password!"
 _TEST_DB_NAME = "metric-metadata"
+
 
 @pytest.fixture(scope="session")
 def postgres_container() -> Generator[PostgresContainer, None, None]:
@@ -72,6 +72,12 @@ def property_dal(database_manager: DatabaseManager, initialize_db: None):
 def property_service(property_dal):
     return PropertyService(dal=property_dal)
 
+
 @pytest.fixture
 def property_example():
-    return PropertyModel(property_name="test_property", property_description="Some Description", entity_type=EntityTypeEnum.METRIC, data_type=DataTypeEnum.STRING)
+    return PropertyModel(
+        property_name="test_property",
+        property_description="Some Description",
+        entity_type=EntityTypeEnum.METRIC,
+        data_type=DataTypeEnum.STRING,
+    )

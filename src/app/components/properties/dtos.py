@@ -18,7 +18,9 @@ class PropertyInDTO(BaseModel):
     @field_validator("property_name")
     def validate_property_name(cls, value):
         if not value.isalpha():
-            raise ValueError("Property Name must only contain alphabetic characters (no spaces, numbers, or special characters).")
+            raise ValueError(
+                "Property Name must only contain alphabetic characters (no spaces, numbers, or special characters)."
+            )
         return value
 
     @field_validator("property_description")
@@ -38,7 +40,9 @@ class PropertyUpdateInDTO(PropertyInDTO):
     @field_validator("property_name")
     def validate_property_name(cls, value):
         if value and not value.isalpha():
-            raise ValueError("Property Name must only contain alphabetic characters (no spaces, numbers, or special characters).")
+            raise ValueError(
+                "Property Name must only contain alphabetic characters (no spaces, numbers, or special characters)."
+            )
         return value
 
     @field_validator("property_description")
@@ -46,6 +50,7 @@ class PropertyUpdateInDTO(PropertyInDTO):
         if value and len(value.strip()) == 0:
             raise ValueError("Property Description cannot be only whitespace.")
         return value
+
 
 class PropertyOutDTO(FoundationModel):
     id: uuid.UUID

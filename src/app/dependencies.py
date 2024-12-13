@@ -1,3 +1,5 @@
+import logging
+
 from matter_persistence.redis.manager import CacheManager
 from matter_persistence.redis.utils import get_connection_pool
 from matter_persistence.sql.manager import DatabaseManager
@@ -47,11 +49,15 @@ class Dependencies:
 
     @classmethod
     def start(cls):
+        logging.info("Database manager initialization...")
         cls._database_manager = DatabaseManager(host=SETTINGS.db_url, engine_kwargs={"echo": True})
+        logging.info("Database manager initialized")
+        logging.info("Cache manager initialization...")
         cls._cache_manager = CacheManager(
             connection_pool=get_connection_pool(host=SETTINGS.cache_endpoint_url, port=SETTINGS.cache_port)
         )
-
+        logging.info("Cache manager initialized")
+        logging.info("Services and DAL initialization...")
         cls._health_dal = HealthDAL(cache_manager=cls.cache_manager(), database_manager=cls.db_manager())
         cls._health_service = HealthService(dal=cls._health_dal)
 
@@ -61,7 +67,9 @@ class Dependencies:
         cls._property_dal = PropertyDAL(database_manager=cls.db_manager())
         cls._property_service = PropertyService(dal=cls._property_dal)
 
-        cls._meta_data_service = MetaDataService(property_service=cls._property_service, cache_manager=cls._cache_manager)
+        cls._meta_data_service = MetaDataService(
+            property_service=cls._property_service, cache_manager=cls._cache_manager
+        )
 
         cls._metric_set_dal = MetricSetDAL(database_manager=cls.db_manager())
         cls._metric_set_service = MetricSetService(dal=cls._metric_set_dal, meta_data_service=cls._meta_data_service)
@@ -76,6 +84,7 @@ class Dependencies:
 
         cls._metric_dal = MetricDAL(database_manager=cls.db_manager())
         cls._metric_service = MetricService(dal=cls._metric_dal, meta_data_service=cls._meta_data_service)
+        logging.info("Services and DAL initialized")
 
     @classmethod
     async def stop(cls):

@@ -1,5 +1,4 @@
 import json
-from venv import logger
 
 from matter_exceptions.exceptions.fastapi import ValidationError
 from matter_observability.metrics import count_occurrence, measure_processing_time
