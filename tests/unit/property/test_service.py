@@ -35,7 +35,7 @@ async def test_find_properties_non_empty(property_service: PropertyService, prop
 
 
 @pytest.mark.asyncio
-async def test_find_properties_empty(property_service: PropertyService, property_example: PropertyModel):
+async def test_find_properties_empty(property_service: PropertyService):
     result = await property_service.find_properties()
 
     assert len(result) == 0

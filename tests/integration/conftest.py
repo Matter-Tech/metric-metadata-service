@@ -70,7 +70,6 @@ def property_dal(database_manager: DatabaseManager, initialize_db: None):
     return PropertyDAL(database_manager=database_manager)
 
 
-# TODO: Replace the property_dal with a mock
 @pytest.fixture
 def property_service(property_dal):
     return PropertyService(dal=property_dal)
