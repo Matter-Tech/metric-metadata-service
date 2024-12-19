@@ -33,28 +33,12 @@ services:
       - 6379:6379
     env_file:
       - ../env/compose.env
+    command: ["redis-server", "--requirepass", "secretPassword"]
     healthcheck:
-      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+      test: ["CMD-SHELL", "redis-cli -a secretPassword ping | grep PONG"]
       interval: 1s
       timeout: 2s
       retries: 5
-    networks:
-      - network
-
-  auth:
-    # Mock Aggregate API
-    image: wiremock/wiremock:3.5.2
-    environment:
-      - INSTANCE_NAME=auth-api
-    ports:
-      - 8082:8080
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/__admin/health"]
-      interval: 1s
-      timeout: 2s
-      retries: 5
-    volumes:
-      - ../tests/resources/wiremock/auth:/home/wiremock/mappings
     networks:
       - network
 
@@ -118,35 +102,6 @@ services:
         condition: service_healthy
       aws:
         condition: service_healthy
-      auth:
-        condition: service_healthy
       base-builder:
         condition: service_started
     command: poetry run python -m app.main
-
-  metric-metadata-service-celery-beat:
-    extends:
-      service: metric-metadata-service-base
-    environment:
-      - INSTANCE_NAME=metric-metadata-service-celery-beat
-    depends_on:
-      *app-dependencies
-    command: poetry run celery -A app.main.celery beat -s /tmp/celerybeat-schedule.db
-
-  metric-metadata-service-worker-high:
-    extends:
-      service: metric-metadata-service-base
-    environment:
-      - INSTANCE_NAME=metric-metadata-service-worker-high
-    depends_on:
-      *app-dependencies
-    command: poetry run celery -A app.main.celery worker -Q high_priority_queue --concurrency 2
-
-  metric-metadata-service-worker-low:
-    extends:
-      service: metric-metadata-service-base
-    environment:
-      - INSTANCE_NAME=metric-metadata-service-worker-low
-    depends_on:
-      *app-dependencies
-    command: poetry run celery -A app.main.celery worker -Q low_priority_queue --concurrency 2

@@ -11,7 +11,7 @@ docker compose -f "$COMPOSE_FILE" down
 docker compose -f "$COMPOSE_FILE" build base-builder
 
 docker compose -f "$COMPOSE_FILE" up --build \
-  postgres postgres-migration redis auth aws
+  postgres postgres-migration redis aws
 
 docker compose -f "$COMPOSE_FILE" down
 

@@ -31,11 +31,11 @@ class Settings(BaseSettings):
 
     # Cache
     cache_endpoint_url: str = "metric-metadata-redis.redis"
-    redis_password: str = ""
+    redis_password: str
     redis_db: int = 0
     redis_service_name: str = "mymaster"
-
     cache_port: int = 6379
+
     cache_default_record_expiration: int = 60 * 60 * 24  # 24 hours
     cache_token_expiration: int = 3600 * 1  # 1 hour
     cache_error_expiration: int = 60 * 15

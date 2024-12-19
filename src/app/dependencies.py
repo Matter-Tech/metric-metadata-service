@@ -1,7 +1,7 @@
 import logging
 
 from matter_persistence.redis.manager import CacheManager
-from matter_persistence.redis.utils import get_sentinel
+from matter_persistence.redis.utils import get_connection_pool
 from matter_persistence.sql.manager import DatabaseManager
 
 from app.components.data_metrics.dal import DataMetricDAL
@@ -56,12 +56,12 @@ class Dependencies:
         logging.debug("Database manager initialized")
         logging.debug("Cache manager initialization...")
         cls._cache_manager = CacheManager(
-            sentinel=await get_sentinel(
-                [(SETTINGS.cache_endpoint_url, SETTINGS.cache_port)],
+            connection_pool=get_connection_pool(
+                host=SETTINGS.cache_endpoint_url,
+                port=SETTINGS.cache_port,
                 password=SETTINGS.redis_password,
                 db=SETTINGS.redis_db,
             ),
-            sentinel_service_name=SETTINGS.redis_service_name,
         )
         logging.debug("Cache manager initialized")
         logging.debug("Services and DAL initialization...")

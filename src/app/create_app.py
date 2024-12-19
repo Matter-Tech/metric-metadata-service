@@ -49,7 +49,7 @@ async def _app_lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
         _: the FastAPI app
     """
     logging.debug("Initiating dependencies...")
-    Dependencies.start()
+    await Dependencies.start()
     logging.debug("Done initiating dependencies.")
 
     yield
