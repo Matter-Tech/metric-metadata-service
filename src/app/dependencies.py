@@ -48,7 +48,7 @@ class Dependencies:
     _cache_manager: CacheManager
 
     @classmethod
-    async def start(cls):
+    def start(cls):
         logging.debug("Database manager initialization...")
         cls._database_manager = DatabaseManager(
             host=SETTINGS.db_url.replace("postgresql:", "postgresql+asyncpg:"), engine_kwargs={"echo": True}
