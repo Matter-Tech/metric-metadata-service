@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: metric-metadata-service-migrations-2024-12-19-a5e92f8
+  name: metric-metadata-service-migrations-2024-12-19-b8041c6
   namespace: development
 spec:
   template:
@@ -14,13 +14,18 @@ spec:
       serviceAccountName: metric-metadata-service-account
       containers:
         - name: metric-metadata-service-migrations
-          image: 761124675977.dkr.ecr.eu-central-1.amazonaws.com/core_services/metric-metadata-service:2024-12-19-a5e92f8
+          image: 761124675977.dkr.ecr.eu-central-1.amazonaws.com/core_services/metric-metadata-service:2024-12-19-b8041c6
           command: ["poetry"]
           args: ["run", "alembic", "upgrade", "head"]
           imagePullPolicy: "Always"
           env:
             - name: INSTANCE_NAME
               value: migration
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: metric-metadata-app
+                  key: uri
           envFrom:
             - secretRef:
                 name: metric-metadata-app
@@ -28,6 +33,7 @@ spec:
                 name: metric-metadata-redis-password
             - configMapRef:
                 name: metric-metadata-service-config
+
       restartPolicy: OnFailure
   ttlSecondsAfterFinished: 7200 # delete the job 2 hours after finished
   parallelism: 1
