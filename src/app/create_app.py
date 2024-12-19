@@ -48,16 +48,16 @@ async def _app_lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
     Args:
         _: the FastAPI app
     """
-    logging.info("Initiating dependencies...")
+    logging.debug("Initiating dependencies...")
     Dependencies.start()
-    logging.info("Done initiating dependencies.")
+    logging.debug("Done initiating dependencies.")
 
     yield
 
-    logging.info("Closing connections to DB & cache...")
+    logging.debug("Closing connections to DB & cache...")
     await Dependencies.stop()
-    logging.info("Done closing connections to DB & cache.")
-    logging.info("Application is shutting down...")
+    logging.debug("Done closing connections to DB & cache.")
+    logging.debug("Application is shutting down...")
 
 
 def create_app() -> FastAPI:
