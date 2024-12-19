@@ -14,7 +14,7 @@ spec:
   template:
     metadata:
       annotations:
-        prometheus.io/scrape: "true"
+        prometheus.io/scrape: "falseg"
         prometheus.io/path: /internal/metrics
         prometheus.io/port: "8080"
       labels:
