@@ -8,7 +8,7 @@ services:
     # Base Docker Image
     build:
       context: ..
-      dockerfile: docker/Dockerfile.base
+      dockerfile: docker/Dockerfile
     image: metric-metadata-service-base-image:latest
 
   postgres:
@@ -81,7 +81,7 @@ services:
   metric-metadata-service-base:
     build:
       context: ..
-      dockerfile: docker/Dockerfile.development
+      dockerfile: docker/Dockerfile
     image: metric-metadata-service-development:latest
     env_file:
       - ../env/compose.env
