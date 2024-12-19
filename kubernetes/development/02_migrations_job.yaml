@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: metric-metadata-service-migrations-2024-12-13-25ae6dd
+  name: metric-metadata-service-migrations-2024-12-19-a5e92f8
   namespace: development
 spec:
   template:
@@ -14,7 +14,7 @@ spec:
       serviceAccountName: metric-metadata-service-account
       containers:
         - name: metric-metadata-service-migrations
-          image: 761124675977.dkr.ecr.eu-central-1.amazonaws.com/core_services/metric-metadata-service:2024-12-13-25ae6dd
+          image: 761124675977.dkr.ecr.eu-central-1.amazonaws.com/core_services/metric-metadata-service:2024-12-19-a5e92f8
           command: ["poetry"]
           args: ["run", "alembic", "upgrade", "head"]
           imagePullPolicy: "Always"
