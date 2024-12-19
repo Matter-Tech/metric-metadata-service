@@ -35,5 +35,3 @@ spec:
       when:
         - key: request.auth.claims[iss]
           values: [ "https://auth.thisismatter.com/" ]
-        - key: request.auth.claims[https://auth.thisismatter.com/permissions/]
-          values: [ 'platform:superuser:write' ]
