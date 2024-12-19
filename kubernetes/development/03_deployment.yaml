@@ -28,7 +28,7 @@ spec:
       nodeSelector:
         environment: compute
       containers:
-        - image: 761124675977.dkr.ecr.eu-central-1.amazonaws.com/core_services/metric-metadata-service:2024-12-19-f8120dd
+        - image: 761124675977.dkr.ecr.eu-central-1.amazonaws.com/core_services/metric-metadata-service:2024-12-19-7e76586
           name: metric-metadata-service
           imagePullPolicy: "Always"
           ports:
