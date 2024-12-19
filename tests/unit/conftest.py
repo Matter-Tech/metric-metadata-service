@@ -19,7 +19,6 @@ _TEST_DB_NAME = "metric-metadata"
 _TEST_AWS_PORT = 4567
 
 
-# Test Database for the integration tests
 @pytest.fixture(scope="session")
 def postgres_container() -> Generator[PostgresContainer, None, None]:
     with PostgresContainer(
