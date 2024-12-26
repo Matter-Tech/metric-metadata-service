@@ -4,14 +4,24 @@ import pytest
 import pytest_asyncio
 from alembic import command, config
 from app.common.enums.enums import DataTypeEnum, EntityTypeEnum
+from app.components.metric_set_trees.dal import MetricSetTreeDAL
+from app.components.metric_set_trees.models.metric_set_tree import MetricSetTreeModel
+from app.components.metric_set_trees.service import MetricSetTreeService
+from app.components.metric_sets.dal import MetricSetDAL
+from app.components.metric_sets.models.metric_set import MetricSetModel
+from app.components.metric_sets.service import MetricSetService
 from app.components.properties.dal import PropertyDAL
 from app.components.properties.models.property import PropertyModel
 from app.components.properties.service import PropertyService
+from app.components.utils.meta_data_service import MetaDataService
+from matter_persistence.redis.manager import CacheManager
+from matter_persistence.redis.utils import get_connection_pool
 from matter_persistence.sql.manager import DatabaseManager
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 from testcontainers.core.container import DockerContainer
 from testcontainers.postgres import PostgresContainer
+from testcontainers.redis import RedisContainer
 
 _TEST_DB_USER = "metric-metadata-api"
 _TEST_DB_PASSWORD = "Password!"
@@ -19,10 +29,21 @@ _TEST_DB_NAME = "metric-metadata"
 _TEST_AWS_PORT = 4567
 
 
-# Test Database for the integration tests
+# Test Postgres Database for the integration tests
 @pytest.fixture(scope="session")
 def postgres_container() -> Generator[PostgresContainer, None, None]:
     with PostgresContainer(
+        username=_TEST_DB_USER,
+        password=_TEST_DB_PASSWORD,
+        dbname=_TEST_DB_NAME,
+    ) as postgres:
+        yield postgres
+
+
+# Test Redis Database for the integration tests
+@pytest.fixture(scope="session")
+def redis_container() -> Generator[RedisContainer, None, None]:
+    with RedisContainer(
         username=_TEST_DB_USER,
         password=_TEST_DB_PASSWORD,
         dbname=_TEST_DB_NAME,
@@ -43,6 +64,13 @@ def database_manager(postgres_container: PostgresContainer) -> DatabaseManager:
     return DatabaseManager(
         postgres_container.get_connection_url(driver="asyncpg"),
         {"echo": True},
+    )
+
+
+@pytest.fixture
+def cache_manager(redis_container: RedisContainer) -> CacheManager:
+    return CacheManager(
+        connection_pool=get_connection_pool(host=redis_container.get_container_host_ip(), port=redis_container.port)
     )
 
 
@@ -83,3 +111,40 @@ def property_example():
         entity_type=EntityTypeEnum.METRIC,
         data_type=DataTypeEnum.STRING,
     )
+
+
+@pytest.fixture
+def meta_data_service(property_service, cache_manager):
+    return MetaDataService(property_service=property_service, cache_manager=cache_manager)
+
+
+@pytest.fixture
+def metric_set_tree_dal(database_manager: DatabaseManager, initialize_db: None):
+    return MetricSetTreeDAL(database_manager=database_manager)
+
+
+@pytest.fixture
+def metric_set_tree_service(metric_set_tree_dal, meta_data_service):
+    return MetricSetTreeService(dal=metric_set_tree_dal, meta_data_service=meta_data_service)
+
+
+# TODO: create example metric set tree
+@pytest.fixture
+def metric_set_tree_example():
+    return MetricSetTreeModel()
+
+
+@pytest.fixture
+def metric_set_dal(database_manager: DatabaseManager, initialize_db: None):
+    return MetricSetDAL(database_manager=database_manager)
+
+
+@pytest.fixture
+def metric_set_service(metric_set_dal, meta_data_service):
+    return MetricSetService(dal=metric_set_dal, meta_data_service=meta_data_service)
+
+
+# TODO: create example metric sets
+@pytest.fixture
+def metric_set_example():
+    return MetricSetModel()
