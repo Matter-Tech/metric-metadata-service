@@ -32,7 +32,9 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 # Set URL to the database
-config.set_main_option("sqlalchemy.url", SETTINGS.db_url.replace("%", "%%"))
+config.set_main_option(
+    "sqlalchemy.url", SETTINGS.db_url.replace("%", "%%").replace("postgresql:", "postgresql+asyncpg:")
+)
 
 
 def import_submodules(package, recursive=True):
