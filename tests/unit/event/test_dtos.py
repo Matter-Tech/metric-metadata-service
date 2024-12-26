@@ -137,7 +137,7 @@ def test_event_list_out_dto_valid():
     assert len(dto.events) == 2
     assert dto.events[0].event_type == EventTypeEnum.DELETED
     assert dto.events[1].entity_type == EntityTypeEnum.METRIC
-    assert dto.events[0].event_type == EventTypeEnum.CREATED
+    assert dto.events[1].event_type == EventTypeEnum.CREATED
 
 
 def test_event_list_out_dto_invalid_events():
