@@ -15,11 +15,6 @@ class Settings(BaseSettings):
     instance_name: str = "metric-metadata-service"
     domain_name: str = ""
 
-    # Security - JWT
-    secret_key: str = "secret-key"  # openssl rand -hex 32
-    algorithm: str = "HS256"
-    access_token_expire_minutes: int = 30
-
     # Database configuration
     db_url: str
     pg_connpoolsize: int = 10
