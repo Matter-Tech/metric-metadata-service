@@ -77,17 +77,6 @@ services:
     networks:
       - network
 
-  # Database Migrations
-  postgres-migration:
-    extends:
-      service: metric-metadata-service-base
-    environment:
-      - INSTANCE_NAME=migration
-    depends_on:
-      postgres:
-        condition: service_healthy
-    command: bash -c "./init_database.sh"
-
   metric-metadata-service:
     extends:
       service: metric-metadata-service-base
@@ -96,12 +85,9 @@ services:
     environment:
       - INSTANCE_NAME=metric-metadata-service
     depends_on: &app-dependencies
-      postgres-migration:
-        condition: service_completed_successfully
       redis:
         condition: service_healthy
       aws:
         condition: service_healthy
-      base-builder:
-        condition: service_started
-    command: poetry run python -m app.main
+      postgres:
+        condition: service_healthy

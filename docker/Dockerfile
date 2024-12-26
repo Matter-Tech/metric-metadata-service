@@ -38,6 +38,7 @@ COPY ../scripts/await_migrations.sh await_migrations.sh
 COPY ../docker/startup.sh startup.sh
 COPY src/app ./app
 COPY src/alembic ./alembic
+COPY src/alembic.ini alembic.ini
 
 RUN poetry install --only main
 
