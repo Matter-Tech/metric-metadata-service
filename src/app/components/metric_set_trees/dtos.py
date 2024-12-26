@@ -11,7 +11,7 @@ from app.common.enums.enums import NodeTypeEnum
 class MetricSetTreeInDTO(BaseModel):
     metric_set_id: uuid.UUID = Field(..., alias="metricSetId")
     node_type: NodeTypeEnum = Field(..., alias="nodeType")
-    node_depth: int = Field(..., alias="nodeDepth")
+    node_depth: int = Field(..., ge=0, alias="nodeDepth")
     node_name: str = Field(..., max_length=100, alias="nodeName")
     node_description: str | None = Field(None, alias="nodeDescription")
     node_reference_id: str | None = Field(None, alias="nodeReferenceId")
@@ -22,7 +22,7 @@ class MetricSetTreeInDTO(BaseModel):
 class MetricSetTreeUpdateInDTO(MetricSetTreeInDTO):
     metric_set_id: uuid.UUID | None = Field(None, alias="metricSetId")
     node_type: NodeTypeEnum | None = Field(None, alias="nodeType")
-    node_depth: int | None = Field(None, alias="nodeDepth")
+    node_depth: int | None = Field(None, ge=0, alias="nodeDepth")
     node_name: str | None = Field(None, max_length=100, alias="nodeName")
     node_description: str | None = Field(None, alias="nodeDescription")
     node_reference_id: str | None = Field(None, alias="nodeReferenceId")

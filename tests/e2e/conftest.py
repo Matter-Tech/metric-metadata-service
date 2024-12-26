@@ -11,8 +11,8 @@ def auth_bearer_jwt() -> str:
 
 
 @pytest.fixture(scope="session")
-def server_url(request: pytest.FixtureRequest) -> str:
-    return f"http://{SETTINGS.domain_name}{SETTINGS.path_prefix}/v1/{request.param}"
+def server_url() -> str:
+    return f"http://{SETTINGS.domain_name}{SETTINGS.path_prefix}/v1"
 
 
 @pytest.fixture(scope="session")
@@ -25,6 +25,101 @@ def property_id(server_url, auth_bearer_jwt):
         "entityType": "metric",
         "isRequired": False,
     }
-    response = post(url=server_url, payload=json.dumps(payload), headers={"Authorization": f"Bearer {auth_bearer_jwt}"})
+    response = post(
+        url=f"{server_url}/properties",
+        payload=json.dumps(payload),
+        headers={"Authorization": f"Bearer {auth_bearer_jwt}"},
+    )
     assert response.status_code == 201
     return response.json["id"]
+
+
+@pytest.fixture(scope="session")
+def metric_set_id(server_url, auth_bearer_jwt):
+    # Create a new property and return its ID
+    payload = {
+        "status": "deployed",
+        "shortName": "Test_Metric_Set",
+        "placement": "datasets/esgInsights",
+        "metaData": {},
+    }
+    response = post(
+        url=f"{server_url}/metric_sets",
+        payload=json.dumps(payload),
+        headers={"Authorization": f"Bearer {auth_bearer_jwt}"},
+    )
+    assert response.status_code == 201
+    return response.json["id"]
+
+
+@pytest.fixture(scope="session")
+def metric_set_tree_id(server_url, auth_bearer_jwt, metric_set_id):
+    # Create a new property and return its ID\
+    payload = {
+        "metricSetId": metric_set_id,
+        "nodeType": "root",
+        "nodeDepth": 0,
+        "nodeName": "metric_set_tree_test",
+        "nodeDescription": "Empty",
+        "metaData": {},
+    }
+    response = post(
+        url=f"{server_url}/metric_set_trees",
+        payload=json.dumps(payload),
+        headers={"Authorization": f"Bearer {auth_bearer_jwt}"},
+    )
+    assert response.status_code == 201
+    return response.json["id"]
+
+
+@pytest.fixture(scope="session")
+def data_metric_id(server_url, auth_bearer_jwt):
+    # Create a new property and return its ID
+    payload = {
+        "dataId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        "metricType": "string",
+        "name": "string",
+        "metaData": {},
+    }
+    response = post(
+        url=f"{server_url}/data_metrics",
+        payload=json.dumps(payload),
+        headers={"Authorization": f"Bearer {auth_bearer_jwt}"},
+    )
+    assert response.status_code == 201
+    return response.json["id"]
+
+
+@pytest.fixture(scope="session")
+def metric_id(server_url, auth_bearer_jwt, data_metric_id, metric_set_id):
+    # Create a new property and return its ID
+    payload = {
+        "metricSetId": metric_set_id,
+        "dataMetricId": data_metric_id,
+        "status": "deployed",
+        "name": "test_metric",
+        "nameSuffix": "tst_metr",
+        "metaData": {},
+    }
+    response = post(
+        url=f"{server_url}/metrics", payload=json.dumps(payload), headers={"Authorization": f"Bearer {auth_bearer_jwt}"}
+    )
+    assert response.status_code == 201
+    return response.json["id"]
+
+
+@pytest.fixture(scope="session")
+def event_id(server_url, auth_bearer_jwt, metric_id):
+    # Create a new property and return its ID
+    payload = {
+        "entityType": "metric",
+        "nodeId": metric_id,
+    }
+    response = post(
+        url=f"{server_url}/events/search",
+        payload=json.dumps(payload),
+        headers={"Authorization": f"Bearer {auth_bearer_jwt}"},
+    )
+    assert response.status_code == 200
+    assert response.json["events"][0] is not None
+    return response.json["events"][0]["id"]

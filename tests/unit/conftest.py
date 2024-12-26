@@ -16,6 +16,7 @@ from testcontainers.postgres import PostgresContainer
 _TEST_DB_USER = "metric-metadata-api"
 _TEST_DB_PASSWORD = "Password!"
 _TEST_DB_NAME = "metric-metadata"
+_TEST_AWS_PORT = 4567
 
 
 @pytest.fixture(scope="session")
@@ -32,7 +33,7 @@ def postgres_container() -> Generator[PostgresContainer, None, None]:
 def aws_localstack_container() -> Generator[DockerContainer, None, None]:
     with DockerContainer(
         image="localstack/localstack:latest-amd64",
-    ).with_bind_ports(4566, 4566) as aws_container:
+    ).with_bind_ports(_TEST_AWS_PORT, _TEST_AWS_PORT) as aws_container:
         yield aws_container
 
 
@@ -50,8 +51,8 @@ async def initialize_db(database_manager: DatabaseManager) -> AsyncGenerator[Non
         cfg.attributes["connection"] = connection
         command.upgrade(cfg, "head")
 
-    alembic_config = config.Config("../src/alembic.ini")
-    alembic_config.set_main_option("script_location", "../src/alembic")
+    alembic_config = config.Config("src/alembic.ini")
+    alembic_config.set_main_option("script_location", "src/alembic")
     async with database_manager.connect() as conn:
         await conn.run_sync(run_upgrade, alembic_config)
 
@@ -68,6 +69,7 @@ def property_dal(database_manager: DatabaseManager, initialize_db: None):
     return PropertyDAL(database_manager=database_manager)
 
 
+# TODO: Replace the property_dal with a mock
 @pytest.fixture
 def property_service(property_dal):
     return PropertyService(dal=property_dal)
