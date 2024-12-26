@@ -1,15 +1,15 @@
 apiVersion: security.istio.io/v1beta1
 kind: RequestAuthentication
 metadata:
-  name: template-api-request-authentication
+  name: metric-metadata-service-request-authentication
   namespace: development
 spec:
   selector:
     matchLabels:
       app: metric-metadata-service
   jwtRules:
-    - issuer: https://thisismatter-dev.eu.auth0.com/
-      jwksUri: https://thisismatter-dev.eu.auth0.com/.well-known/jwks.json
+    - issuer: https://auth.thisismatter.com/
+      jwksUri: https://auth.thisismatter.com/.well-known/jwks.json
       outputPayloadToHeader: jwt
 
 ---
@@ -32,8 +32,3 @@ spec:
     - to:
         - operation:
             methods: [ "GET", "POST", "PUT", "DELETE" ]
-      when:
-        - key: request.auth.claims[iss]
-          values: [ "https://thisismatter-dev.eu.auth0.com/" ]
-        - key: request.auth.claims[https://auth.thisismatter.com/permissions/]
-          values: [ 'platform:superuser:write' ]

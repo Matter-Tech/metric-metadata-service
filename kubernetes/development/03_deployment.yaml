@@ -14,7 +14,7 @@ spec:
   template:
     metadata:
       annotations:
-        prometheus.io/scrape: "true"
+        prometheus.io/scrape: "false"
         prometheus.io/path: /internal/metrics
         prometheus.io/port: "8080"
       labels:
@@ -28,7 +28,7 @@ spec:
       nodeSelector:
         environment: compute
       containers:
-        - image: 761124675977.dkr.ecr.eu-central-1.amazonaws.com/core_services/metric-metadata-service:2024-12-19-17e877e
+        - image: 761124675977.dkr.ecr.eu-central-1.amazonaws.com/core_services/metric-metadata-service:2024-12-26-d272a8f
           name: metric-metadata-service
           imagePullPolicy: "Always"
           ports:
@@ -62,3 +62,9 @@ spec:
                 name: metric-metadata-redis-password
             - configMapRef:
                 name: metric-metadata-service-config
+          env:
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: metric-metadata-app
+                  key: uri

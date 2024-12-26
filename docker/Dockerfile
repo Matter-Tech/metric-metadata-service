@@ -36,8 +36,14 @@ WORKDIR ${PROJECT_PATH_IN_DOCKER}
 COPY ../poetry.lock pyproject.toml README.md ./
 COPY ../scripts/await_migrations.sh await_migrations.sh
 COPY ../docker/startup.sh startup.sh
+COPY src/app ./app
+COPY src/alembic ./alembic
+COPY src/alembic.ini alembic.ini
 
 RUN poetry install --only main
 
-# the base image doesn't do anything as it contains no application code
-CMD ["tail", "-f", "/dev/null"]
+COPY ../scripts/init_database.sh init_database.sh
+
+EXPOSE 8080
+
+CMD [ "bash", "-c", "./startup.sh" ]

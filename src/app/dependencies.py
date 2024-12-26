@@ -49,15 +49,22 @@ class Dependencies:
 
     @classmethod
     def start(cls):
-        logging.info("Database manager initialization...")
-        cls._database_manager = DatabaseManager(host=SETTINGS.db_url, engine_kwargs={"echo": True})
-        logging.info("Database manager initialized")
-        logging.info("Cache manager initialization...")
-        cls._cache_manager = CacheManager(
-            connection_pool=get_connection_pool(host=SETTINGS.cache_endpoint_url, port=SETTINGS.cache_port)
+        logging.debug("Database manager initialization...")
+        cls._database_manager = DatabaseManager(
+            host=SETTINGS.db_url.replace("postgresql:", "postgresql+asyncpg:"), engine_kwargs={"echo": True}
         )
-        logging.info("Cache manager initialized")
-        logging.info("Services and DAL initialization...")
+        logging.debug("Database manager initialized")
+        logging.debug("Cache manager initialization...")
+        cls._cache_manager = CacheManager(
+            connection_pool=get_connection_pool(
+                host=SETTINGS.cache_endpoint_url,
+                port=SETTINGS.cache_port,
+                password=SETTINGS.redis_password,
+                db=SETTINGS.redis_db,
+            ),
+        )
+        logging.debug("Cache manager initialized")
+        logging.debug("Services and DAL initialization...")
         cls._health_dal = HealthDAL(cache_manager=cls.cache_manager(), database_manager=cls.db_manager())
         cls._health_service = HealthService(dal=cls._health_dal)
 
