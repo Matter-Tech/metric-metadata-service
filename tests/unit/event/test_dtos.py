@@ -123,7 +123,7 @@ def test_event_list_out_dto_valid():
             },
             {
                 "id": uuid4(),
-                "eventType": EventTypeEnum.DELETED,
+                "eventType": EventTypeEnum.CREATED,
                 "entityType": EntityTypeEnum.METRIC,
                 "nodeId": uuid4(),
                 "userId": uuid4(),

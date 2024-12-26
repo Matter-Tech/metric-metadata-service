@@ -14,14 +14,14 @@ async def test_create_metric_set_integration(metric_set_dal: MetricSetDAL, metri
     created_metric_set = await metric_set_dal.create_metric_set(metric_set_example)
 
     # Assert: Check the created metric set's data
-    assert created_metric_set.name == metric_set_example.name
-    assert created_metric_set.description == metric_set_example.description
+    assert created_metric_set.short_name == metric_set_example.short_name
+    assert created_metric_set.status == metric_set_example.status
 
     # Assert: Verify the metric set exists in the database
     fetched_metric_set = await metric_set_dal.get_metric_set(created_metric_set.id)
     assert fetched_metric_set is not None
     assert fetched_metric_set.id == created_metric_set.id
-    assert fetched_metric_set.name == created_metric_set.name
+    assert fetched_metric_set.status == created_metric_set.status
 
 
 # Integration test for getting a metric set by ID
@@ -35,8 +35,8 @@ async def test_get_metric_set_integration(metric_set_dal: MetricSetDAL, metric_s
 
     # Assert: Verify the fetched data matches the created data
     assert fetched_metric_set.id == created_metric_set.id
-    assert fetched_metric_set.name == created_metric_set.name
-    assert fetched_metric_set.description == created_metric_set.description
+    assert fetched_metric_set.short_name == created_metric_set.short_name
+    assert fetched_metric_set.status == created_metric_set.status
 
 
 # Integration test for getting a non-existent metric set
@@ -58,7 +58,7 @@ async def test_find_metric_sets_non_empty_integration(metric_set_dal: MetricSetD
 
     # Assert: Verify the result contains at least one metric set
     assert len(metric_sets) > 0
-    assert metric_sets[0].name == metric_set_example.name
+    assert metric_sets[0].short_name == metric_set_example.short_name
 
 
 # Integration test for finding metric sets (empty result)
@@ -80,16 +80,16 @@ async def test_update_metric_set_integration(metric_set_dal: MetricSetDAL, metri
     # Act: Update the metric set
     updated_metric_set = await metric_set_dal.update_metric_set(
         created_metric_set.id,
-        MetricSetUpdateModel(name="Updated Metric Set"),
+        MetricSetUpdateModel(short_name="Updated_Metric_Set"),
     )
 
     # Assert: Verify the metric set was updated correctly
-    assert updated_metric_set.name == "Updated Metric Set"
+    assert updated_metric_set.short_name == "Updated_Metric_Set"
     assert updated_metric_set.id == created_metric_set.id
 
     # Assert: Fetch and verify the updates
     fetched_metric_set = await metric_set_dal.get_metric_set(created_metric_set.id)
-    assert fetched_metric_set.name == "Updated Metric Set"
+    assert fetched_metric_set.short_name == "Updated_Metric_Set"
 
 
 # Integration test for deleting a metric set (soft delete)

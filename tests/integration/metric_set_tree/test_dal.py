@@ -10,27 +10,31 @@ from matter_persistence.sql.exceptions import DatabaseRecordNotFoundError
 # Integration test for creating a metric set tree
 @pytest.mark.asyncio
 async def test_create_metric_set_tree_integration(
-    metric_set_tree_dal: MetricSetTreeDAL, metric_set_tree_example: MetricSetTreeModel
+    metric_set_tree_dal: MetricSetTreeDAL, metric_set_tree_example: MetricSetTreeModel, metric_set_test_entry
 ):
+    metric_set = await metric_set_test_entry
+    metric_set_tree_example.metric_set_id = metric_set.id
     # Act: Create the metric set tree using the DAL
     created_metric_set_tree = await metric_set_tree_dal.create_metric_set_tree(metric_set_tree_example)
 
     # Assert: Check the created metric set tree's data
-    assert created_metric_set_tree.name == metric_set_tree_example.name
-    assert created_metric_set_tree.description == metric_set_tree_example.description
+    assert created_metric_set_tree.node_name == metric_set_tree_example.node_name
+    assert created_metric_set_tree.node_description == metric_set_tree_example.node_description
 
     # Assert: Verify the metric set tree exists in the database
     fetched_metric_set_tree = await metric_set_tree_dal.get_metric_set_tree(created_metric_set_tree.id)
     assert fetched_metric_set_tree is not None
     assert fetched_metric_set_tree.id == created_metric_set_tree.id
-    assert fetched_metric_set_tree.name == created_metric_set_tree.name
+    assert fetched_metric_set_tree.node_name == created_metric_set_tree.node_name
 
 
 # Integration test for getting a metric set tree by ID
 @pytest.mark.asyncio
 async def test_get_metric_set_tree_integration(
-    metric_set_tree_dal: MetricSetTreeDAL, metric_set_tree_example: MetricSetTreeModel
+    metric_set_tree_dal: MetricSetTreeDAL, metric_set_tree_example: MetricSetTreeModel, metric_set_test_entry
 ):
+    metric_set = await metric_set_test_entry
+    metric_set_tree_example.metric_set_id = metric_set.id
     # Act: Create the metric set tree
     created_metric_set_tree = await metric_set_tree_dal.create_metric_set_tree(metric_set_tree_example)
 
@@ -39,8 +43,8 @@ async def test_get_metric_set_tree_integration(
 
     # Assert: Verify the fetched data matches the created data
     assert fetched_metric_set_tree.id == created_metric_set_tree.id
-    assert fetched_metric_set_tree.name == created_metric_set_tree.name
-    assert fetched_metric_set_tree.description == created_metric_set_tree.description
+    assert fetched_metric_set_tree.node_name == created_metric_set_tree.node_name
+    assert fetched_metric_set_tree.node_description == created_metric_set_tree.node_description
 
 
 # Integration test for getting a non-existent metric set tree
@@ -54,8 +58,11 @@ async def test_get_metric_set_tree_not_found_integration(metric_set_tree_dal: Me
 # Integration test for finding metric set trees (non-empty result)
 @pytest.mark.asyncio
 async def test_find_metric_set_trees_non_empty_integration(
-    metric_set_tree_dal: MetricSetTreeDAL, metric_set_tree_example: MetricSetTreeModel
+    metric_set_tree_dal: MetricSetTreeDAL, metric_set_tree_example: MetricSetTreeModel, metric_set_test_entry
 ):
+    metric_set = await metric_set_test_entry
+    metric_set_tree_example.metric_set_id = metric_set.id
+
     # Act: Create a metric set tree
     await metric_set_tree_dal.create_metric_set_tree(metric_set_tree_example)
 
@@ -64,7 +71,7 @@ async def test_find_metric_set_trees_non_empty_integration(
 
     # Assert: Verify the result contains at least one metric set tree
     assert len(metric_set_trees) > 0
-    assert metric_set_trees[0].name == metric_set_tree_example.name
+    assert metric_set_trees[0].node_name == metric_set_tree_example.node_name
 
 
 # Integration test for finding metric set trees (empty result)
@@ -80,31 +87,35 @@ async def test_find_metric_set_trees_empty_integration(metric_set_tree_dal: Metr
 # Integration test for updating a metric set tree
 @pytest.mark.asyncio
 async def test_update_metric_set_tree_integration(
-    metric_set_tree_dal: MetricSetTreeDAL, metric_set_tree_example: MetricSetTreeModel
+    metric_set_tree_dal: MetricSetTreeDAL, metric_set_tree_example: MetricSetTreeModel, metric_set_test_entry
 ):
+    metric_set = await metric_set_test_entry
+    metric_set_tree_example.metric_set_id = metric_set.id
     # Act: Create the metric set tree
     created_metric_set_tree = await metric_set_tree_dal.create_metric_set_tree(metric_set_tree_example)
 
     # Act: Update the metric set tree
     updated_metric_set_tree = await metric_set_tree_dal.update_metric_set_tree(
         created_metric_set_tree.id,
-        MetricSetTreeUpdateModel(name="Updated Metric Set Tree"),
+        MetricSetTreeUpdateModel(node_name="Updated Metric Set Tree"),
     )
 
     # Assert: Verify the metric set tree was updated correctly
-    assert updated_metric_set_tree.name == "Updated Metric Set Tree"
+    assert updated_metric_set_tree.node_name == "Updated Metric Set Tree"
     assert updated_metric_set_tree.id == created_metric_set_tree.id
 
     # Assert: Fetch and verify the updates
     fetched_metric_set_tree = await metric_set_tree_dal.get_metric_set_tree(created_metric_set_tree.id)
-    assert fetched_metric_set_tree.name == "Updated Metric Set Tree"
+    assert fetched_metric_set_tree.node_name == "Updated Metric Set Tree"
 
 
 # Integration test for deleting a metric set tree (soft delete)
 @pytest.mark.asyncio
 async def test_delete_metric_set_tree_soft_integration(
-    metric_set_tree_dal: MetricSetTreeDAL, metric_set_tree_example: MetricSetTreeModel
+    metric_set_tree_dal: MetricSetTreeDAL, metric_set_tree_example: MetricSetTreeModel, metric_set_test_entry
 ):
+    metric_set = await metric_set_test_entry
+    metric_set_tree_example.metric_set_id = metric_set.id
     # Act: Create the metric set tree
     created_metric_set_tree = await metric_set_tree_dal.create_metric_set_tree(metric_set_tree_example)
 
@@ -123,8 +134,10 @@ async def test_delete_metric_set_tree_soft_integration(
 # Integration test for deleting a metric set tree (permanent delete)
 @pytest.mark.asyncio
 async def test_delete_metric_set_tree_permanent_integration(
-    metric_set_tree_dal: MetricSetTreeDAL, metric_set_tree_example: MetricSetTreeModel
+    metric_set_tree_dal: MetricSetTreeDAL, metric_set_tree_example: MetricSetTreeModel, metric_set_test_entry
 ):
+    metric_set = await metric_set_test_entry
+    metric_set_tree_example.metric_set_id = metric_set.id
     # Act: Create the metric set tree
     created_metric_set_tree = await metric_set_tree_dal.create_metric_set_tree(metric_set_tree_example)
 

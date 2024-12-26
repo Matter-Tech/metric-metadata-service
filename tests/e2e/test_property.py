@@ -41,7 +41,7 @@ def test_update_property_by_id_endpoint(server_url, auth_bearer_jwt, property_id
     }
 
     response = put(
-        url=f"{server_url}/{property_id}",
+        url=f"{server_url}/properties/{property_id}",
         payload=json.dumps(payload),
         headers={"Authorization": f"Bearer {auth_bearer_jwt}"},
     )

@@ -3,7 +3,7 @@ from typing import AsyncGenerator, Generator
 import pytest
 import pytest_asyncio
 from alembic import command, config
-from app.common.enums.enums import DataTypeEnum, EntityTypeEnum
+from app.common.enums.enums import DataTypeEnum, EntityTypeEnum, NodeTypeEnum, PlacementEnum, StatusEnum
 from app.components.metric_set_trees.dal import MetricSetTreeDAL
 from app.components.metric_set_trees.models.metric_set_tree import MetricSetTreeModel
 from app.components.metric_set_trees.service import MetricSetTreeService
@@ -128,10 +128,15 @@ def metric_set_tree_service(metric_set_tree_dal, meta_data_service):
     return MetricSetTreeService(dal=metric_set_tree_dal, meta_data_service=meta_data_service)
 
 
-# TODO: create example metric set tree
 @pytest.fixture
 def metric_set_tree_example():
-    return MetricSetTreeModel()
+    return MetricSetTreeModel(
+        node_type=NodeTypeEnum.METRIC,
+        node_depth=0,
+        node_name="test_root",
+        node_description="Test Description",
+        meta_data={},
+    )
 
 
 @pytest.fixture
@@ -144,7 +149,20 @@ def metric_set_service(metric_set_dal, meta_data_service):
     return MetricSetService(dal=metric_set_dal, meta_data_service=meta_data_service)
 
 
-# TODO: create example metric sets
+@pytest.fixture
+def metric_set_test_entry(metric_set_dal):
+    return metric_set_dal.create_metric_set(
+        MetricSetModel(
+            status=StatusEnum.DEPLOYED,
+            short_name="test_metric_set_entry",
+            placement=PlacementEnum.REGULATORY,
+            meta_data={},
+        )
+    )
+
+
 @pytest.fixture
 def metric_set_example():
-    return MetricSetModel()
+    return MetricSetModel(
+        status=StatusEnum.DEPLOYED, short_name="test_metric_set", placement=PlacementEnum.REGULATORY, meta_data={}
+    )
