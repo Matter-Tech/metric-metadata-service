@@ -1,15 +1,25 @@
 from typing import AsyncGenerator, Generator
+from uuid import uuid4
 
 import pytest
 import pytest_asyncio
 from alembic import command, config
-from app.common.enums.enums import DataTypeEnum, EntityTypeEnum, NodeTypeEnum, PlacementEnum, StatusEnum
+from app.common.enums.enums import DataTypeEnum, EntityTypeEnum, EventTypeEnum, NodeTypeEnum, PlacementEnum, StatusEnum
+from app.components.data_metrics.dal import DataMetricDAL
+from app.components.data_metrics.models.data_metric import DataMetricModel
+from app.components.data_metrics.service import DataMetricService
+from app.components.events.dal import EventDAL
+from app.components.events.models.event import EventModel
+from app.components.events.service import EventService
 from app.components.metric_set_trees.dal import MetricSetTreeDAL
 from app.components.metric_set_trees.models.metric_set_tree import MetricSetTreeModel
 from app.components.metric_set_trees.service import MetricSetTreeService
 from app.components.metric_sets.dal import MetricSetDAL
 from app.components.metric_sets.models.metric_set import MetricSetModel
 from app.components.metric_sets.service import MetricSetService
+from app.components.metrics.dal import MetricDAL
+from app.components.metrics.models.metric import MetricModel
+from app.components.metrics.service import MetricService
 from app.components.properties.dal import PropertyDAL
 from app.components.properties.models.property import PropertyModel
 from app.components.properties.service import PropertyService
@@ -41,14 +51,10 @@ def postgres_container() -> Generator[PostgresContainer, None, None]:
 
 
 # Test Redis Database for the integration tests
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def redis_container() -> Generator[RedisContainer, None, None]:
-    with RedisContainer(
-        username=_TEST_DB_USER,
-        password=_TEST_DB_PASSWORD,
-        dbname=_TEST_DB_NAME,
-    ) as postgres:
-        yield postgres
+    with RedisContainer() as redis:
+        yield redis
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -70,7 +76,9 @@ def database_manager(postgres_container: PostgresContainer) -> DatabaseManager:
 @pytest.fixture
 def cache_manager(redis_container: RedisContainer) -> CacheManager:
     return CacheManager(
-        connection_pool=get_connection_pool(host=redis_container.get_container_host_ip(), port=redis_container.port)
+        connection_pool=get_connection_pool(
+            host=redis_container.get_container_host_ip(), port=redis_container.get_exposed_port(6379), db=0
+        )
     )
 
 
@@ -165,4 +173,56 @@ def metric_set_test_entry(metric_set_dal):
 def metric_set_example():
     return MetricSetModel(
         status=StatusEnum.DEPLOYED, short_name="test_metric_set", placement=PlacementEnum.REGULATORY, meta_data={}
+    )
+
+
+@pytest.fixture
+def metric_service(metric_dal, meta_data_service):
+    return MetricService(dal=metric_dal, meta_data_service=meta_data_service)
+
+
+@pytest.fixture
+def metric_dal(database_manager: DatabaseManager, initialize_db: None):
+    return MetricDAL(database_manager=database_manager)
+
+
+@pytest.fixture
+def metric_example():
+    return MetricModel(
+        status=StatusEnum.DEPLOYED,
+        meta_data={},
+        name="test_metric",
+        name_suffix="test",
+    )
+
+
+@pytest.fixture
+def data_metric_service(data_metric_dal, meta_data_service):
+    return DataMetricService(dal=data_metric_dal, meta_data_service=meta_data_service)
+
+
+@pytest.fixture
+def data_metric_dal(database_manager: DatabaseManager, initialize_db: None):
+    return DataMetricDAL(database_manager=database_manager)
+
+
+@pytest.fixture
+def data_metric_example():
+    return DataMetricModel(name="test_data_metric", data_id=uuid4(), metric_type="test_metric_type", meta_data={})
+
+
+@pytest.fixture
+def event_service(event_dal):
+    return EventService(dal=event_dal)
+
+
+@pytest.fixture
+def event_dal(database_manager: DatabaseManager, initialize_db: None):
+    return EventDAL(database_manager=database_manager)
+
+
+@pytest.fixture
+def event_example():
+    return EventModel(
+        event_type=EventTypeEnum.DELETED, entity_type=EntityTypeEnum.METRIC, node_id=uuid4(), user_id=uuid4()
     )
