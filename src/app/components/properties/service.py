@@ -11,6 +11,7 @@ from matter_persistence.redis.manager import CacheManager
 from matter_persistence.sql.exceptions import DatabaseError
 from matter_persistence.sql.utils import SortMethodModel
 
+from app.common.enums.enums import EntityTypeEnum
 from app.components.properties.dal import PropertyDAL
 from app.components.properties.models.property import PropertyModel
 from app.components.properties.models.property_update import PropertyUpdateModel
@@ -65,10 +66,7 @@ class PropertyService:
             raise ServerError(description=ex.description, detail=ex.detail)
 
         try:
-            cache_key_ids = f"property_{property_model.entity_type.value}_ids_to_names"
-            cache_key_names = f"property_{property_model.entity_type.value}_names_to_ids"
-            await self._cache_manager.delete_with_key(cache_key_ids)
-            await self._cache_manager.delete_with_key(cache_key_names)
+            await self._delete_outdated_cache_values(property_model.entity_type)
         finally:
             return created_property_model
 
@@ -83,11 +81,7 @@ class PropertyService:
 
         try:
             property_model = await self.get_property(property_id)
-            cache_key_ids = f"property_{property_model.entity_type.value}_ids_to_names"
-            cache_key_names = f"property_{property_model.entity_type.value}_names_to_ids"
-
-            await self._cache_manager.delete_with_key(cache_key_ids)
-            await self._cache_manager.delete_with_key(cache_key_names)
+            await self._delete_outdated_cache_values(property_model.entity_type)
         finally:
             return result
 
@@ -101,10 +95,12 @@ class PropertyService:
 
         try:
             property_model = await self.get_property(property_id)
-            cache_key_ids = f"property_{property_model.entity_type.value}_ids_to_names"
-            cache_key_names = f"property_{property_model.entity_type.value}_names_to_ids"
-
-            await self._cache_manager.delete_with_key(cache_key_ids)
-            await self._cache_manager.delete_with_key(cache_key_names)
+            await self._delete_outdated_cache_values(property_model.entity_type)
         finally:
             return result
+
+    async def _delete_outdated_cache_values(self, entity_type: EntityTypeEnum):
+        cache_key_ids = f"property_{entity_type.value}_ids_to_names"
+        cache_key_names = f"property_{entity_type.value}_names_to_ids"
+        await self._cache_manager.delete_with_key(cache_key_ids)
+        await self._cache_manager.delete_with_key(cache_key_names)
