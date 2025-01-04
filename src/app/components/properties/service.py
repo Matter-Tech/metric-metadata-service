@@ -1,4 +1,5 @@
 import uuid
+
 from typing import List
 
 from matter_exceptions.exceptions.fastapi import ServerError
@@ -6,6 +7,7 @@ from matter_observability.metrics import (
     count_occurrence,
     measure_processing_time,
 )
+from matter_persistence.redis.manager import CacheManager
 from matter_persistence.sql.exceptions import DatabaseError
 from matter_persistence.sql.utils import SortMethodModel
 
@@ -18,8 +20,10 @@ class PropertyService:
     def __init__(
         self,
         dal: PropertyDAL,
+        cache_manager: CacheManager,
     ):
         self._dal = dal
+        self._cache_manager = cache_manager
 
     @count_occurrence(label="properties.get_property")
     @measure_processing_time(label="properties.get_property")
@@ -60,7 +64,13 @@ class PropertyService:
         except DatabaseError as ex:
             raise ServerError(description=ex.description, detail=ex.detail)
 
-        return created_property_model
+        try:
+            cache_key_ids = f"property_{property_model.entity_type.value}_ids_to_names"
+            cache_key_names = f"property_{property_model.entity_type.value}_names_to_ids"
+            await self._cache_manager.delete_with_key(cache_key_ids)
+            await self._cache_manager.delete_with_key(cache_key_names)
+        finally:
+            return created_property_model
 
     @count_occurrence(label="properties.update_property")
     @measure_processing_time(label="properties.update_property")
@@ -69,7 +79,17 @@ class PropertyService:
         property_id: uuid.UUID,
         property_update_model: PropertyUpdateModel,
     ) -> PropertyModel:
-        return await self._dal.update_property(property_id, property_update_model)
+        result = await self._dal.update_property(property_id, property_update_model)
+
+        try:
+            property_model = await self.get_property(property_id)
+            cache_key_ids = f"property_{property_model.entity_type.value}_ids_to_names"
+            cache_key_names = f"property_{property_model.entity_type.value}_names_to_ids"
+
+            await self._cache_manager.delete_with_key(cache_key_ids)
+            await self._cache_manager.delete_with_key(cache_key_names)
+        finally:
+            return result
 
     @count_occurrence(label="properties.delete_property")
     @measure_processing_time(label="properties.delete_property")
@@ -77,4 +97,14 @@ class PropertyService:
         self,
         property_id: uuid.UUID,
     ) -> PropertyModel:
-        return await self._dal.delete_property(property_id, soft_delete=True)
+        result = await self._dal.delete_property(property_id, soft_delete=True)
+
+        try:
+            property_model = await self.get_property(property_id)
+            cache_key_ids = f"property_{property_model.entity_type.value}_ids_to_names"
+            cache_key_names = f"property_{property_model.entity_type.value}_names_to_ids"
+
+            await self._cache_manager.delete_with_key(cache_key_ids)
+            await self._cache_manager.delete_with_key(cache_key_names)
+        finally:
+            return result

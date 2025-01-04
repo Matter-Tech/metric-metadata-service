@@ -72,7 +72,7 @@ class Dependencies:
         cls._event_service = EventService(dal=cls._event_dal)
 
         cls._property_dal = PropertyDAL(database_manager=cls.db_manager())
-        cls._property_service = PropertyService(dal=cls._property_dal)
+        cls._property_service = PropertyService(dal=cls._property_dal, cache_manager=cls.cache_manager())
 
         cls._meta_data_service = MetaDataService(
             property_service=cls._property_service, cache_manager=cls._cache_manager
