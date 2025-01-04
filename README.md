@@ -1,7 +1,9 @@
 # Metric Metadata Service 
 Welcome to the Metric Metadata Service!
 
-[Brief description of the service and its purpose]
+The Metric-Metadata-Service is a specialized service designed to manage metrics data efficiently. 
+It provides functionality to handle information about metrics in a manner consistent with the updated version of the Source of Truth (SoT) document. 
+Additionally, the service supports defining configurable properties for various entity types and implements robust logging of system events to ensure traceability and accountability.
 
 This FastAPI-based service is part of Matter's innovative mirco-service based platform.
 Matter is a leading ESG (Environmental, Social, and Governance) analysis fintech company that provides innovative solutions to help investors and companies make informed decisions based on ESG factors. Our mission is to drive sustainable and responsible investment by leveraging cutting-edge technology and data-driven insights.
@@ -20,22 +22,29 @@ For more information about Matter, visit our website at [https://www.thisismatte
 ---
 
 # Introduction
-[Provide a more detailed overview of the service, its functionality, and how it fits into the overall architecture of Matter's ESG analysis fintech ecosystem.]
+Utilizes PostgreSQL as the primary database for storing structured data.
+Leverages Redis for efficient caching to improve performance.
+Built with the matter-persistence library for seamless database interaction.
+Exposes HTTP endpoints to enable interaction with client applications.
 
-[Remove when populating:
+Currently, the Metric-Metadata-Service operates independently and is not connected to any other services within Matter's ecosystem.
 
-The template showcases two distinct demo workflows:
+# Entities
 
-1. **Metrics** - Shows how cache is used for persistent storage, with Celery as a batching tool and asynchronous flow.
-2. **Organizations** - Demonstrates the use of Databases via ORM.
+1. **MetricSets** (Core) - Used as categories for the rest of the core entities.
+2. **MetricSetTrees** (Core) - Used as a three for the page structure in the Matter's platform.
+3. **Metrics** (Core) - Describe the actual metrics showed within the platform.
+4. **DataMetrics** (Core) - Bridge between the metrics in the platform and the data metrics stored in the backend.
+5. **Properties** (Util) - Util entity used for defining properties of the core entities.
+6. **Events** (Util) - Util entity used for creating event logs.
 
-In the near future, we aim to implement this logic in Cookie Cutter.
-]
 
 # Features
-* [Feature 1]
-* [Feature 2]
-* [Feature 3]
+* CRUD operations of all core entities.
+* Defining and managing properties of the core entities.
+* Validation of data stored for the core entities (Can't add additional metadata that is not predefined as property).
+* Creation of event logs.
+* Filtering, pagination, sorting of all entities.
 
 
 # Getting started
@@ -222,11 +231,6 @@ alembic merge heads
 
 Multiple heads are not supported by the deployment pipelines.
 
-Migrations are automatically applied when running the application in kubernetes.
-The relevant job `02_migrations_job.yaml` is in the `kubernetes` folder for each environment. 
-When the container starts in kubernetes, it will wait for the migrations job to complete, before starting the application,
-using the script `await_migrations.sh`.
-
 # Deployment
 
 This Metric Metadata Service repository comes with a built-in GitHub Actions CI/CD pipeline that automates the testing and deployment process. The pipeline is triggered whenever changes are pushed to the repository, ensuring that the code remains reliable and functional.
@@ -240,28 +244,16 @@ The CI/CD pipeline includes the following steps:
 
 # Business Logic
 
-This section of the README.md should provide a detailed explanation of the business logic implemented in your Python FastAPI-based web service. It is essential to document and communicate the core functionality, rules, and processes that drive your application.
-
-When writing this section, consider including the following aspects:
-
-* **Purpose:** Clearly state the primary purpose and objectives of your web service. Explain how it solves specific business problems or addresses particular needs.
-* **Workflow:** Describe the high-level workflow of your application. Outline the main steps involved in processing requests, handling data, and generating responses. Use diagrams or flowcharts if necessary to visualize the process.
-* **Key Features:** Highlight the key features and functionalities of your web service. Explain how these features align with the business requirements and provide value to the users.
-* **Data Models:** Document the primary data models used in your application. Describe the entities, their attributes, and the relationships between them. Clarify how these models represent the business domain and support the desired functionality.
-* **Business Rules:** Specify any business rules, constraints, or validations applied within your application. Explain how these rules ensure data integrity, enforce business policies, and maintain the consistency of the system.
-* **Integration Points:** If your web service integrates with external systems or APIs, document these integration points. Describe the purpose of each integration, the data exchanged, and any specific requirements or constraints.
-* **Error Handling:** Explain how your application handles errors and exceptions. Describe the common error scenarios, the corresponding error codes or messages, and the appropriate actions taken in each case.
-* **Logging and Monitoring:** Document your logging and monitoring strategy. Specify what information is logged, how it is captured, and where it is stored. Explain how this data can be used for troubleshooting, performance analysis, and business insights.
-* **Assumptions and Limitations:** Clearly state any assumptions made during the development of your web service. Highlight any known limitations or constraints that users should be aware of when using your application.
-
-Remember to keep your explanations clear, concise, and accessible to both technical and non-technical stakeholders. Use code snippets, examples, or references to specific files or modules to support your documentation when necessary.
-
-By providing a comprehensive description of your application's business logic, you enable other developers, maintainers, and stakeholders to understand the core functionality and make informed decisions when working with your Python FastAPI-based web service.
-
+* **Purpose:** The main purpose of this service is to store the metrics data and metadata used by the frontend platform.
+* **Business Rules:** When pushing core entities' metadata validation for existence of such properties will be applied.
+* **Integration Points:** No endpoints with a though for integration.
+* **Error Handling:** Global error handlers are handling logging of all error occurrences. Specific error handlers are utilized throughout the service.
+* **Logging and Monitoring:** The service doesn't have distributed logging and monitoring, however it has the setup from template-api. It does log every service call and every SQL query though.
+* **Assumptions and Limitations:** The service has limitation on how many events it can handle so it's not fit for prolonged use without further updates.
 
 # Project structure
 
-The Metric Metadata Service project is organized into multiple layers, each responsible for specific functionality. This well-structured architecture promotes code separation, maintainability, and scalability. The project follows the three-layer architecture (router, service, and DAL) for handling API endpoints and business logic, along with an additional layer for async Celery tasks to enable asynchronous processing.
+The Metric Metadata Service project is organized into multiple layers, each responsible for specific functionality. This well-structured architecture promotes code separation, maintainability, and scalability. The project follows the three-layer architecture (router, service, and DAL) for handling API endpoints and business logic.
 
 ## Layers Description
 ### Router (Endpoints)
@@ -273,8 +265,5 @@ The service package contains the business logic of the Metric Metadata Service. 
 ### DAL (Data Access Layer)
 The dal package encapsulates the interaction with the database or any external data sources. It provides functions to perform CRUD operations and fetch data required for the analysis service. The DAL abstracts away the underlying data storage, making it easier to switch between different database implementations.
 
-### Tasks (Async Celery)
-The tasks package handles asynchronous Celery tasks. Celery is used for background processing to allow the API to perform certain tasks asynchronously. For example, long-running tasks such as complex analysis or third-party API interactions can be offloaded to Celery workers, freeing up the API to handle other incoming requests.
-
 ## Conclusion
-The clear separation of concerns through the three-layer architecture (router, service, and DAL) ensures a well-organized and scalable codebase. The addition of async Celery tasks allows for efficient background processing, making the Metric Metadata Service responsive and performant even during resource-intensive operations.
+The clear separation of concerns through the three-layer architecture (router, service, and DAL) ensures a well-organized and scalable codebase.
