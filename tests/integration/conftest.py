@@ -107,8 +107,8 @@ def property_dal(database_manager: DatabaseManager, initialize_db: None):
 
 
 @pytest.fixture
-def property_service(property_dal):
-    return PropertyService(dal=property_dal)
+def property_service(property_dal, cache_manager):
+    return PropertyService(dal=property_dal, cache_manager=cache_manager)
 
 
 @pytest.fixture
